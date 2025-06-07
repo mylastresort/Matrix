@@ -412,6 +412,10 @@ impl<K: Scalar> Matrix<K> {
 
         rank
     }
+
+    pub fn is_independent(&self) -> bool {
+        self.rank() == self.rows
+    }
 }
 
 pub fn projection(fov: f32, ratio: f32, near: f32, far: f32) -> Matrix<f32> {
