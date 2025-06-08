@@ -44,6 +44,24 @@ impl<K: Clone, const N: usize, const D: usize> From<[[K; D]; N]> for Matrix<K> {
     }
 }
 
+impl<'a, K> IntoIterator for &'a Matrix<K> {
+    type Item = &'a [K];
+    type IntoIter = Chunks<'a, K>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.chunks(self.cols)
+    }
+}
+
+impl<'a, K> IntoIterator for &'a mut Matrix<K> {
+    type Item = &'a mut [K];
+    type IntoIter = ChunksMut<'a, K>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.chunks_mut(self.cols)
+    }
+}
+
 impl<K> Index<usize> for Matrix<K> {
     type Output = [K];
 
@@ -400,7 +418,7 @@ impl<K: Scalar> Matrix<K> {
         let mut rank = 0;
 
         let mut cur = 0;
-        for row in mat.iter() {
+        for row in &mat {
             for (j, v) in row.iter().enumerate().skip(cur) {
                 if *v != K::default() {
                     cur = j + 1;
@@ -415,6 +433,28 @@ impl<K: Scalar> Matrix<K> {
 
     pub fn is_independent(&self) -> bool {
         self.rank() == self.rows
+    }
+
+    pub fn row_space(&self) -> Matrix<K> {
+        let mat = self.row_echelon();
+        let mut vec = vec![];
+
+        let mut cur = 0;
+        for row in &mat {
+            for (j, v) in row.iter().enumerate().skip(cur) {
+                if *v != K::default() {
+                    cur = j + 1;
+                    vec.copy_from_slice(row);
+                    break;
+                }
+            }
+        }
+
+        Matrix {
+            cols: self.cols,
+            rows: vec.len() / self.cols,
+            data: vec,
+        }
     }
 }
 
