@@ -422,11 +422,13 @@ impl<K: Scalar> Matrix<K> {
         let mut vec = vec![];
 
         let mut cur = 0;
+        let mut rank = 0;
         for row in mat.data.chunks(self.cols) {
             for (j, v) in row.iter().enumerate().skip(cur) {
                 if *v != K::default() {
-                    cur = j + 1;
                     vec.copy_from_slice(row);
+                    cur = j + 1;
+                    rank += 1;
                     break;
                 }
             }
@@ -434,7 +436,33 @@ impl<K: Scalar> Matrix<K> {
 
         Matrix {
             cols: self.cols,
-            rows: vec.len() / self.cols,
+            rows: rank,
+            data: vec,
+        }
+    }
+
+    pub fn col_space(&self) -> Matrix<K> {
+        let mat = self.row_echelon();
+        let mut vec = vec![];
+
+        let mut cur = 0;
+        let mut rank = 0;
+        for row in mat.data.chunks(self.cols) {
+            for (j, v) in row.iter().enumerate().skip(cur) {
+                if *v != K::default() {
+                    for r in self.data.chunks(self.cols) {
+                        vec.push(r[cur])
+                    }
+                    cur = j + 1;
+                    rank += 1;
+                    break;
+                }
+            }
+        }
+
+        Matrix {
+            cols: self.rows,
+            rows: rank,
             data: vec,
         }
     }
