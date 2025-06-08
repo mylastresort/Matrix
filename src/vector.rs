@@ -20,7 +20,7 @@ pub struct ScaledVector<'a, K: Scalar> {
 
 impl<K: Scalar> Debug for Vector<K> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_list().entries(self.iter()).finish()
+        f.debug_list().entries(self).finish()
     }
 }
 
@@ -29,6 +29,24 @@ impl<K: Clone, const N: usize> From<[K; N]> for Vector<K> {
         Vector {
             data: Vec::from(data),
         }
+    }
+}
+
+impl<'a, K> IntoIterator for &'a Vector<K> {
+    type Item = &'a K;
+    type IntoIter = Iter<'a, K>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.iter()
+    }
+}
+
+impl<'a, K> IntoIterator for &'a mut Vector<K> {
+    type Item = &'a mut K;
+    type IntoIter = IterMut<'a, K>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.iter_mut()
     }
 }
 
@@ -100,9 +118,9 @@ impl<K: Scalar> SubAssign<&Vector<K>> for Vector<K> {
     fn sub_assign(&mut self, rhs: &Vector<K>) {
         assert_eq!(self.size(), rhs.size(), "vectors must be the same size");
 
-        self.iter_mut()
-            .zip(rhs.iter())
-            .for_each(|(x1, x2)| x1.sub_assign(x2));
+        for i in 0..self.size() {
+            self.data[i] -= rhs.data[i];
+        }
     }
 }
 
@@ -129,31 +147,53 @@ impl<K: Scalar> Mul<&K> for &Vector<K> {
 
 impl<K: Scalar> MulAssign<&K> for Vector<K> {
     fn mul_assign(&mut self, a: &K) {
-        for i in self.iter_mut() {
+        for i in self {
             *i *= a;
         }
     }
 }
 
-impl<K: Scalar> Mul<&Vector<K>> for &Vector<K> {
+impl<K: Scalar> Mul<&[K]> for &Vector<K> {
     type Output = K;
 
-    fn mul(self, other: &Vector<K>) -> Self::Output {
-        self.iter()
-            .zip(other.iter())
-            .map(|(&x1, &x2)| x1.mul(x2))
-            .sum()
+    fn mul(self, rhs: &[K]) -> Self::Output {
+        let mut sum = K::default();
+        for i in 0..self.size() {
+            sum += self[i] * rhs[i];
+        }
+        sum
     }
 }
 
 impl<K: Scalar> Mul<&Vector<K>> for &[K] {
     type Output = K;
 
-    fn mul(self, other: &Vector<K>) -> Self::Output {
-        self.iter()
-            .zip(other.iter())
-            .map(|(&x1, &x2)| x1.mul(x2))
-            .sum()
+    fn mul(self, rhs: &Vector<K>) -> Self::Output {
+        rhs * self
+    }
+}
+
+impl<K: Scalar> Mul<&Vec<K>> for &Vector<K> {
+    type Output = K;
+
+    fn mul(self, rhs: &Vec<K>) -> Self::Output {
+        self * &rhs[..]
+    }
+}
+
+impl<K: Scalar> Mul<&Vector<K>> for &Vec<K> {
+    type Output = K;
+
+    fn mul(self, rhs: &Vector<K>) -> Self::Output {
+        rhs * self
+    }
+}
+
+impl<K: Scalar> Mul<&Vector<K>> for &Vector<K> {
+    type Output = K;
+
+    fn mul(self, rhs: &Vector<K>) -> Self::Output {
+        self * &rhs.data
     }
 }
 
