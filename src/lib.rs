@@ -8,7 +8,6 @@ pub mod vector;
 use std::ops::{Add, Mul, Sub};
 
 pub use matrix::Matrix;
-pub use vector::ScaledVector;
 pub use vector::Vector;
 
 pub use matrix::projection;

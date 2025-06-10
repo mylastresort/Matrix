@@ -1,6 +1,5 @@
 use std::{
     fmt::Debug,
-    iter::Sum,
     ops::{Add, AddAssign, Index, Mul, MulAssign, Sub, SubAssign},
     slice::{Iter, IterMut},
 };
@@ -12,15 +11,9 @@ pub struct Vector<K> {
     pub data: Vec<K>,
 }
 
-#[derive(Clone, Debug)]
-pub struct ScaledVector<'a, K: Scalar> {
-    pub v: &'a Vector<K>,
-    pub k: &'a K,
-}
-
 impl<K: Scalar> Debug for Vector<K> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_list().entries(self).finish()
+        f.debug_list().entries(self.data.iter()).finish()
     }
 }
 
@@ -29,24 +22,6 @@ impl<K: Clone, const N: usize> From<[K; N]> for Vector<K> {
         Vector {
             data: Vec::from(data),
         }
-    }
-}
-
-impl<'a, K> IntoIterator for &'a Vector<K> {
-    type Item = &'a K;
-    type IntoIter = Iter<'a, K>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.data.iter()
-    }
-}
-
-impl<'a, K> IntoIterator for &'a mut Vector<K> {
-    type Item = &'a mut K;
-    type IntoIter = IterMut<'a, K>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.data.iter_mut()
     }
 }
 
@@ -85,16 +60,6 @@ impl<K: Scalar> AddAssign<&Vector<K>> for Vector<K> {
 
         for i in 0..self.size() {
             self.data[i] += rhs.data[i];
-        }
-    }
-}
-
-impl<'a, K: Scalar> AddAssign<ScaledVector<'a, K>> for Vector<K> {
-    fn add_assign(&mut self, rhs: ScaledVector<'a, K>) {
-        assert_eq!(self.size(), rhs.v.size(), "vectors must be the same size");
-
-        for i in 0..self.size() {
-            self.data[i] = rhs.v.data[i].mul_add(*rhs.k, self.data[i]);
         }
     }
 }
@@ -147,8 +112,8 @@ impl<K: Scalar> Mul<&K> for &Vector<K> {
 
 impl<K: Scalar> MulAssign<&K> for Vector<K> {
     fn mul_assign(&mut self, a: &K) {
-        for i in self {
-            *i *= a;
+        for i in self.data.iter_mut() {
+            *i *= *a;
         }
     }
 }
@@ -197,28 +162,6 @@ impl<K: Scalar> Mul<&Vector<K>> for &Vector<K> {
     }
 }
 
-impl<'a, K: Scalar> Sum<ScaledVector<'a, K>> for Vector<K> {
-    fn sum<I: Iterator<Item = ScaledVector<'a, K>>>(mut iter: I) -> Self {
-        match iter.next().map(|vec| vec.v * vec.k) {
-            None => Vector::default(),
-            Some(first) => iter.fold(first, |mut acc, cur| {
-                acc += cur;
-                acc
-            }),
-        }
-    }
-}
-
-#[macro_export]
-macro_rules! linear_combination {
-    ($u:expr, $coefs:expr) => {
-        $u.into_iter()
-            .zip($coefs)
-            .map(|(v, k)| $crate::ScaledVector { v, k })
-            .sum()
-    };
-}
-
 pub fn linear_combination<K: Scalar>(
     u: &[&Vector<K>],
     coefs: &[K],
@@ -235,7 +178,18 @@ pub fn linear_combination<K: Scalar>(
         "vectors must be have the same dimention"
     );
 
-    linear_combination!(u.iter().copied(), coefs)
+    let mut iter = u.iter().zip(coefs);
+
+    if let Some(mut first) = iter.next().map(|(&v, k)| v.clone() * *k) {
+        for (v, k) in iter {
+            for i in 0..first.size() {
+                first.data[i] = v.data[i].mul_add(*k, first.data[i]);
+            }
+        }
+        first
+    } else {
+        Vector::default()
+    }
 }
 
 pub fn angle_cos<K: Scalar>(u: &Vector<K>, v: &Vector<K>) -> K {

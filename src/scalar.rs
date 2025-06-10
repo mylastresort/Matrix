@@ -6,21 +6,17 @@ pub trait Scalar:
     + Default
     + std::cmp::PartialOrd
     + std::ops::Neg<Output = Self>
-    + std::ops::Add<Self, Output = Self>
-    + std::ops::Sub<Self, Output = Self>
-    + std::ops::Mul<Self, Output = Self>
-    + std::ops::Div<Self, Output = Self>
-    + for<'a> std::ops::AddAssign<&'a Self>
-    + std::ops::AddAssign<Self>
-    + for<'a> std::ops::SubAssign<&'a Self>
-    + std::ops::SubAssign<Self>
-    + for<'a> std::ops::MulAssign<&'a Self>
-    + std::ops::MulAssign<Self>
-    + for<'a> std::ops::DivAssign<&'a Self>
-    + std::ops::DivAssign<Self>
-    + std::iter::Sum<Self>
+    + std::ops::Add<Output = Self>
+    + std::ops::Sub<Output = Self>
+    + std::ops::Mul<Output = Self>
+    + std::ops::Div<Output = Self>
+    + std::ops::AddAssign
+    + std::ops::SubAssign
+    + std::ops::MulAssign
+    + std::ops::DivAssign
+    + std::iter::Sum
 {
-    type AbsOutput: Sum<Self::AbsOutput> + Default + Copy + std::cmp::PartialOrd;
+    type AbsOutput: Sum<Self::AbsOutput> + Default + std::cmp::PartialOrd;
     type TanOutput;
 
     fn abs(self) -> Self::AbsOutput;
