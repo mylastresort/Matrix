@@ -44,24 +44,6 @@ impl<K: Clone, const N: usize, const D: usize> From<[[K; D]; N]> for Matrix<K> {
     }
 }
 
-impl<'a, K> IntoIterator for &'a Matrix<K> {
-    type Item = &'a [K];
-    type IntoIter = Chunks<'a, K>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.data.chunks(self.cols)
-    }
-}
-
-impl<'a, K> IntoIterator for &'a mut Matrix<K> {
-    type Item = &'a mut [K];
-    type IntoIter = ChunksMut<'a, K>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.data.chunks_mut(self.cols)
-    }
-}
-
 impl<K> Index<usize> for Matrix<K> {
     type Output = [K];
 
@@ -164,7 +146,7 @@ impl<K: Scalar> Mul<K> for Matrix<K> {
 impl<K: Scalar> MulAssign<&K> for Matrix<K> {
     fn mul_assign(&mut self, rhs: &K) {
         for i in 0..self.data.len() {
-            self.data[i] *= rhs;
+            self.data[i] *= *rhs;
         }
     }
 }
@@ -418,7 +400,7 @@ impl<K: Scalar> Matrix<K> {
         let mut rank = 0;
 
         let mut cur = 0;
-        for row in &mat {
+        for row in mat.data.chunks(self.cols) {
             for (j, v) in row.iter().enumerate().skip(cur) {
                 if *v != K::default() {
                     cur = j + 1;
@@ -440,7 +422,7 @@ impl<K: Scalar> Matrix<K> {
         let mut vec = vec![];
 
         let mut cur = 0;
-        for row in &mat {
+        for row in mat.data.chunks(self.cols) {
             for (j, v) in row.iter().enumerate().skip(cur) {
                 if *v != K::default() {
                     cur = j + 1;
