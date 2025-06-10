@@ -1,7 +1,6 @@
 use std::{
     fmt::Debug,
     ops::{Add, AddAssign, Index, Mul, MulAssign, Sub, SubAssign},
-    slice::{Iter, IterMut},
 };
 
 use crate::scalar::Scalar;
@@ -12,7 +11,7 @@ pub struct Vector<K> {
 }
 
 impl<K: Scalar> Debug for Vector<K> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.debug_list().entries(self.data.iter()).finish()
     }
 }
@@ -221,14 +220,6 @@ impl<K: Scalar> Vector<K> {
         self.data.len()
     }
 
-    pub fn iter(&self) -> Iter<'_, K> {
-        self.data.iter()
-    }
-
-    pub fn iter_mut(&mut self) -> IterMut<'_, K> {
-        self.data.iter_mut()
-    }
-
     pub fn first(&self) -> Option<&K> {
         self.data.first()
     }
@@ -256,15 +247,15 @@ impl<K: Scalar> Vector<K> {
     }
 
     pub fn norm_1(&self) -> K::AbsOutput {
-        self.iter().map(|&x| x.abs()).sum::<K::AbsOutput>()
+        self.data.iter().map(|&x| x.abs()).sum::<K::AbsOutput>()
     }
 
     pub fn norm(&self) -> K {
-        K::sqrt(self.iter().map(|&x| x * x).sum())
+        K::sqrt(self.data.iter().map(|&x| x * x).sum())
     }
 
     pub fn norm_inf(&self) -> K::AbsOutput {
-        self.iter().map(|&x| x.abs()).fold(
+        self.data.iter().map(|&x| x.abs()).fold(
             K::AbsOutput::default(),
             |acc, cur| if acc > cur { acc } else { cur },
         )

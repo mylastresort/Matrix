@@ -1,7 +1,6 @@
 use std::{
     fmt::Debug,
     ops::{Add, AddAssign, Index, IndexMut, Mul, MulAssign, Sub, SubAssign},
-    slice::{Chunks, ChunksMut},
 };
 
 use crate::{scalar::Scalar, vector::Vector};
@@ -14,7 +13,7 @@ pub struct Matrix<K> {
 }
 
 impl<K: Scalar> Debug for Matrix<K> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.write_str("[")?;
         for i in 0..self.rows {
             write!(f, "{:?}", &self[i])?;
@@ -201,13 +200,6 @@ impl<K: Scalar> Matrix<K> {
     }
     pub fn is_square(&self) -> bool {
         self.rows == self.cols
-    }
-    pub fn iter_mut(&mut self) -> ChunksMut<'_, K> {
-        self.data.chunks_mut(self.cols)
-    }
-
-    pub fn iter(&self) -> Chunks<'_, K> {
-        self.data.chunks(self.cols)
     }
 
     pub fn add(&mut self, v: &Matrix<K>) {
