@@ -63,6 +63,16 @@ impl Scalar for Complex {
                 / (f32::cos(2. * self.x) + f32::cosh(2. * self.y)),
         }
     }
+
+    type SinOutput = Complex;
+    fn sin(self) -> Self::SinOutput {
+        todo!()
+    }
+
+    type CosOutput = Complex;
+    fn cos(self) -> Self::CosOutput {
+        todo!()
+    }
 }
 
 impl Sum for Complex {

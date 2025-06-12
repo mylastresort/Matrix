@@ -18,6 +18,8 @@ pub trait Scalar:
 {
     type AbsOutput: Sum<Self::AbsOutput> + Default + std::cmp::PartialOrd;
     type TanOutput;
+    type CosOutput;
+    type SinOutput;
 
     fn abs(self) -> Self::AbsOutput;
     fn mul_add(self, a: Self, b: Self) -> Self;
@@ -25,10 +27,14 @@ pub trait Scalar:
     fn one() -> Self;
     fn inv(self) -> Self;
     fn tan(self) -> Self::TanOutput;
+    fn sin(self) -> Self::SinOutput;
+    fn cos(self) -> Self::CosOutput;
 }
 
 impl Scalar for f32 {
     type AbsOutput = f32;
+    type SinOutput = f32;
+    type CosOutput = f32;
 
     fn abs(self) -> Self::AbsOutput {
         f32::abs(self)
@@ -53,6 +59,14 @@ impl Scalar for f32 {
     type TanOutput = f32;
     fn tan(self) -> Self::TanOutput {
         f32::tan(self)
+    }
+
+    fn cos(self) -> Self::CosOutput {
+        f32::cos(self)
+    }
+
+    fn sin(self) -> Self::SinOutput {
+        f32::sin(self)
     }
 }
 
@@ -82,5 +96,15 @@ impl Scalar for f64 {
     type TanOutput = f64;
     fn tan(self) -> Self::TanOutput {
         f64::tan(self)
+    }
+
+    type CosOutput = f64;
+    fn cos(self) -> Self::CosOutput {
+        f64::sin(self)
+    }
+
+    type SinOutput = f64;
+    fn sin(self) -> Self::SinOutput {
+        f64::sin(self)
     }
 }
