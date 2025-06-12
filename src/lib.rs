@@ -14,6 +14,8 @@ pub use matrix::projection;
 pub use vector::angle_cos;
 pub use vector::cross_product;
 pub use vector::linear_combination;
+pub mod vec2;
+pub mod vec3;
 
 pub fn lerp<
     V: Clone + Sub<Output = V> + Mul<f32, Output = V> + Add<Output = V>,
