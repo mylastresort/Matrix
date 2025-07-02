@@ -31,15 +31,15 @@ impl Scalar for Complex {
 
     fn inv(self) -> Self {
         Complex {
-            x: 1. / self.x,
-            y: 1. / self.y,
+            x: self.x / (self.x.powi(2) + self.y.powi(2)),
+            y: self.y / (self.x.powi(2) + self.y.powi(2)),
         }
     }
 
     fn sqrt(v: Self) -> Self {
         Complex {
-            x: f32::sqrt(v.x),
-            y: f32::sqrt(v.y),
+            x: ((v.abs() + v.x) / 2.).sqrt(),
+            y: v.y / v.y.abs() * ((v.abs() - v.x) / 2.).sqrt(),
         }
     }
 
@@ -49,8 +49,8 @@ impl Scalar for Complex {
 
     fn mul_add(self, a: Self, b: Self) -> Self {
         Complex {
-            x: f32::mul_add(self.x, a.x, b.x),
-            y: f32::mul_add(self.y, a.y, b.y),
+            x: f32::mul_add(self.x, a.x, -f32::mul_add(self.y, a.y, b.x)),
+            y: f32::mul_add(self.x, a.y, f32::mul_add(self.y, a.x, b.y)),
         }
     }
 
@@ -189,22 +189,30 @@ impl Div for Complex {
     type Output = Self;
     fn div(self, rhs: Self) -> Self {
         Complex {
-            x: self.x / rhs.x,
-            y: self.y / rhs.y,
+            x: (self.x * rhs.x + self.y * rhs.y)
+                / (rhs.x.powi(2) + rhs.y.powi(2)),
+            y: (self.y * rhs.x - self.x * rhs.y)
+                / (rhs.x.powi(2) + rhs.y.powi(2)),
         }
     }
 }
 
 impl DivAssign<&Complex> for Complex {
     fn div_assign(&mut self, rhs: &Complex) {
-        self.x /= rhs.x;
-        self.y /= rhs.y;
+        let x =
+            (self.x * rhs.x + self.y * rhs.y) / (rhs.x.powi(2) + rhs.y.powi(2));
+        self.y =
+            (self.y * rhs.x - self.x * rhs.y) / (rhs.x.powi(2) + rhs.y.powi(2));
+        self.x = x;
     }
 }
 
 impl DivAssign for Complex {
     fn div_assign(&mut self, rhs: Self) {
-        self.x /= rhs.x;
-        self.y /= rhs.y;
+        let x =
+            (self.x * rhs.x + self.y * rhs.y) / (rhs.x.powi(2) + rhs.y.powi(2));
+        self.y =
+            (self.y * rhs.x - self.x * rhs.y) / (rhs.x.powi(2) + rhs.y.powi(2));
+        self.x = x;
     }
 }
