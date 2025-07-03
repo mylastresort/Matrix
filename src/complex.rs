@@ -9,8 +9,8 @@ use crate::scalar::Scalar;
 
 #[derive(Copy, Clone, Default, PartialEq, PartialOrd, Debug)]
 pub struct Complex {
-    x: f32,
-    y: f32,
+    pub x: f32,
+    pub y: f32,
 }
 
 #[macro_export]
