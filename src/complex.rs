@@ -56,8 +56,8 @@ impl Scalar for Complex {
 
     fn mul_add(self, a: Self, b: Self) -> Self {
         Complex {
-            x: f32::mul_add(self.x, a.x, -f32::mul_add(self.y, a.y, b.x)),
-            y: f32::mul_add(self.x, a.y, f32::mul_add(self.y, a.x, b.y)),
+            x: self.x.mul_add(a.x, self.y.mul_add(-a.y, b.x)),
+            y: self.x.mul_add(a.y, self.y.mul_add(a.x, b.y)),
         }
     }
 
