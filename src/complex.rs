@@ -66,12 +66,18 @@ impl Scalar for Complex {
 
     type SinOutput = Complex;
     fn sin(self) -> Self::SinOutput {
-        todo!()
+        Complex {
+            x: f32::sin(self.x) * f32::cosh(self.y),
+            y: f32::cos(self.x) * f32::sinh(self.y),
+        }
     }
 
     type CosOutput = Complex;
     fn cos(self) -> Self::CosOutput {
-        todo!()
+        Complex {
+            x: f32::cos(self.x) * f32::cosh(self.y),
+            y: f32::sin(self.x) * f32::sinh(self.y),
+        }
     }
 }
 
