@@ -18,13 +18,20 @@ pub trait Scalar:
     + MulAdd<Self, Self>
     + Lerp
 {
-    type AbsOutput: Sum<Self::AbsOutput> + Default + std::cmp::PartialOrd;
+    type AbsOutput: Sum<Self::AbsOutput>
+        + Debug
+        + Copy
+        + Default
+        + std::cmp::PartialOrd
+        + std::ops::AddAssign
+        + MulAdd<Self::AbsOutput, Self::AbsOutput>
+        + Sqrt
+        + std::ops::Mul<Output = Self::AbsOutput>;
     type TanOutput;
     type CosOutput;
     type SinOutput;
 
-    fn abs(self) -> Self::AbsOutput;
-    fn sqrt(v: Self) -> Self;
+    fn abs(&self) -> Self::AbsOutput;
     fn one() -> Self;
     fn inv(self) -> Self;
     fn tan(self) -> Self::TanOutput;
@@ -33,7 +40,11 @@ pub trait Scalar:
 }
 
 pub trait MulAdd<U, V> {
-    fn mul_add(self, a: U, b: &V) -> Self;
+    fn mul_add(self, a: &U, b: &V) -> Self;
+}
+
+pub trait Sqrt {
+    fn sqrt(self) -> Self;
 }
 
 pub trait Lerp {
@@ -49,12 +60,12 @@ impl Scalar for f32 {
     type SinOutput = f32;
     type CosOutput = f32;
 
-    fn abs(self) -> Self::AbsOutput {
-        f32::abs(self)
-    }
-
-    fn sqrt(v: Self) -> Self {
-        v.sqrt()
+    fn abs(&self) -> Self::AbsOutput {
+        if *self < 0. {
+            -self
+        } else {
+            self.clone()
+        }
     }
 
     fn one() -> Self {
@@ -82,12 +93,12 @@ impl Scalar for f32 {
 impl Scalar for f64 {
     type AbsOutput = f64;
 
-    fn abs(self) -> Self::AbsOutput {
-        f64::abs(self)
-    }
-
-    fn sqrt(v: Self) -> Self {
-        v.sqrt()
+    fn abs(&self) -> Self::AbsOutput {
+        if *self < 0. {
+            -self
+        } else {
+            self.clone()
+        }
     }
 
     fn one() -> Self {
@@ -115,14 +126,26 @@ impl Scalar for f64 {
 }
 
 impl MulAdd<f32, f32> for f32 {
-    fn mul_add(self, a: f32, b: &f32) -> Self {
-        self.mul_add(a, *b)
+    fn mul_add(self, a: &f32, b: &f32) -> Self {
+        self.mul_add(*a, *b)
     }
 }
 
 impl MulAdd<f64, f64> for f64 {
-    fn mul_add(self, a: f64, b: &f64) -> Self {
-        self.mul_add(a, *b)
+    fn mul_add(self, a: &f64, b: &f64) -> Self {
+        self.mul_add(*a, *b)
+    }
+}
+
+impl Sqrt for f32 {
+    fn sqrt(self: Self) -> Self {
+        self.powf(0.5)
+    }
+}
+
+impl Sqrt for f64 {
+    fn sqrt(self: Self) -> Self {
+        self.powf(0.5)
     }
 }
 

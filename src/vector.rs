@@ -3,7 +3,7 @@ use std::{
     ops::{Add, AddAssign, Index, Mul, MulAssign, Sub, SubAssign},
 };
 
-use crate::scalar::{Lerp, MulAdd, Scalar};
+use crate::scalar::{Lerp, MulAdd, Scalar, Sqrt};
 
 #[derive(Clone, Default)]
 pub struct Vector<K> {
@@ -132,7 +132,7 @@ impl<K: Scalar + MulAssign<U>, U: Scalar> MulAssign<&U> for Vector<K> {
 impl<K: Scalar + Mul<U, Output = K> + MulAdd<U, K>, U: Scalar>
     MulAdd<U, Vector<K>> for Vector<K>
 {
-    fn mul_add(self, a: U, b: &Vector<K>) -> Self {
+    fn mul_add(self, a: &U, b: &Vector<K>) -> Self {
         assert!(self.size() == b.size(), "vectors must be the same size");
 
         let mut vec = Vec::with_capacity(self.size());
@@ -152,7 +152,7 @@ impl<K: Scalar> Mul<&[K]> for &Vector<K> {
         let mut sum = K::default();
 
         for (a, b) in self._d.iter().zip(rhs) {
-            sum = a.mul_add(*b, &sum);
+            sum = a.mul_add(b, &sum);
         }
 
         sum
@@ -209,7 +209,7 @@ pub fn linear_combination<K: Scalar>(
     let mut iter = u.iter().zip(coefs);
 
     if let Some(mut sum) = iter.next().map(|(&v, &k)| v.clone() * k) {
-        for (v, &k) in iter {
+        for (v, k) in iter {
             for i in 0..sum.size() {
                 sum._d[i] = v[i].mul_add(k, &sum[i]);
             }
@@ -229,7 +229,7 @@ impl<K: Scalar + MulAdd<f32, K>> Lerp for Vector<K> {
                 let mut vec = Vec::with_capacity(u.size());
 
                 for i in 0..u.size() {
-                    vec.push((v[i] - u[i]).mul_add(p, &u[i]))
+                    vec.push((v[i] - u[i]).mul_add(&p, &u[i]))
                 }
 
                 V!(vec)
@@ -238,7 +238,10 @@ impl<K: Scalar + MulAdd<f32, K>> Lerp for Vector<K> {
     }
 }
 
-pub fn angle_cos<K: Scalar>(u: &Vector<K>, v: &Vector<K>) -> K {
+pub fn angle_cos<K: Scalar>(u: &Vector<K>, v: &Vector<K>) -> K
+where
+    K: std::ops::Div<K::AbsOutput, Output = K>,
+{
     assert_eq!(u.size(), v.size(), "vectors must be the same size");
     assert!(!u.is_empty(), "vectors must be the same size");
 
@@ -294,17 +297,30 @@ impl<K: Scalar> Vector<K> {
     }
 
     pub fn norm_1(&self) -> K::AbsOutput {
-        self._d.iter().map(|&x| x.abs()).sum::<K::AbsOutput>()
+        let mut sum = K::AbsOutput::default();
+        for x in &self._d {
+            sum += x.abs();
+        }
+        sum
     }
 
-    pub fn norm(&self) -> K {
-        K::sqrt(self._d.iter().map(|&x| x * x).sum())
+    pub fn norm(&self) -> K::AbsOutput {
+        let mut sum = K::AbsOutput::default();
+        for x in &self._d {
+            let a = x.abs().clone();
+            sum = a.mul_add(&a, &sum);
+        }
+        sum.sqrt()
     }
 
     pub fn norm_inf(&self) -> K::AbsOutput {
-        self._d.iter().map(|&x| x.abs()).fold(
-            K::AbsOutput::default(),
-            |acc, cur| if acc > cur { acc } else { cur },
-        )
+        let mut max = K::AbsOutput::default();
+        for x in &self._d {
+            let abs_x = x.abs();
+            if max < abs_x {
+                max = abs_x;
+            }
+        }
+        max
     }
 }

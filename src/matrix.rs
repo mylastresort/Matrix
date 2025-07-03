@@ -164,7 +164,7 @@ impl<K: Scalar + MulAssign<U>, U: Scalar> MulAssign<&U> for Matrix<K> {
 impl<K: Scalar + Mul<U, Output = K> + MulAdd<U, K>, U: Scalar>
     MulAdd<U, Matrix<K>> for Matrix<K>
 {
-    fn mul_add(self, a: U, b: &Matrix<K>) -> Self {
+    fn mul_add(self, a: &U, b: &Matrix<K>) -> Self {
         assert!(self.shape() == b.shape(), "matrices must be the same size");
 
         let mut vec = Vec::with_capacity(self.rows * self.cols);
@@ -234,7 +234,7 @@ impl<K: Scalar + MulAdd<f32, K>> Lerp for Matrix<K> {
                 let mut vec = Vec::with_capacity(u._d.len());
 
                 for i in 0..u._d.len() {
-                    vec.push((v._d[i] - u._d[i]).mul_add(p, &u._d[i]))
+                    vec.push((v._d[i] - u._d[i]).mul_add(&p, &u._d[i]))
                 }
 
                 Matrix {

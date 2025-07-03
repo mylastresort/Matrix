@@ -5,7 +5,7 @@ use std::{
     },
 };
 
-use crate::scalar::{Lerp, MulAdd, Scalar};
+use crate::scalar::{Lerp, MulAdd, Scalar, Sqrt};
 
 #[derive(Copy, Clone, Default, PartialEq, PartialOrd, Debug)]
 pub struct Complex {
@@ -32,7 +32,7 @@ impl From<[f32; 2]> for Complex {
 impl Scalar for Complex {
     type AbsOutput = f32;
 
-    fn abs(self) -> Self::AbsOutput {
+    fn abs(&self) -> Self::AbsOutput {
         f32::sqrt(self.x.powi(2) + self.y.powi(2))
     }
 
@@ -40,13 +40,6 @@ impl Scalar for Complex {
         Complex {
             x: self.x / (self.x.powi(2) + self.y.powi(2)),
             y: self.y / (self.x.powi(2) + self.y.powi(2)),
-        }
-    }
-
-    fn sqrt(v: Self) -> Self {
-        Complex {
-            x: ((v.abs() + v.x) / 2.).sqrt(),
-            y: v.y / v.y.abs() * ((v.abs() - v.x) / 2.).sqrt(),
         }
     }
 
@@ -77,6 +70,15 @@ impl Scalar for Complex {
         Complex {
             x: f32::cos(self.x) * f32::cosh(self.y),
             y: f32::sin(self.x) * f32::sinh(self.y),
+        }
+    }
+}
+
+impl Sqrt for Complex {
+    fn sqrt(self: Self) -> Self {
+        Complex {
+            x: ((self.abs() + self.x) / 2.).sqrt(),
+            y: self.y / self.y.abs() * ((self.abs() - self.x) / 2.).sqrt(),
         }
     }
 }
@@ -182,7 +184,7 @@ impl MulAssign<&Complex> for Complex {
 }
 
 impl MulAdd<Complex, Complex> for Complex {
-    fn mul_add(self, a: Self, b: &Self) -> Self {
+    fn mul_add(self, a: &Self, b: &Self) -> Self {
         Complex {
             x: self.x.mul_add(a.x, self.y.mul_add(-a.y, b.x)),
             y: self.x.mul_add(a.y, self.y.mul_add(a.x, b.y)),
@@ -208,10 +210,10 @@ impl MulAssign<f32> for Complex {
 }
 
 impl MulAdd<f32, Complex> for Complex {
-    fn mul_add(self, a: f32, b: &Self) -> Self {
+    fn mul_add(self, a: &f32, b: &Self) -> Self {
         Complex {
-            x: self.x.mul_add(a, b.x),
-            y: self.y.mul_add(a, b.y),
+            x: self.x.mul_add(*a, b.x),
+            y: self.y.mul_add(*a, b.y),
         }
     }
 }
