@@ -8,7 +8,7 @@ use crate::{scalar::Scalar, vector::Vector};
 
 #[derive(Clone)]
 pub struct Matrix<K> {
-    pub data: Vec<K>,
+    pub _d: Vec<K>,
     pub rows: usize,
     pub cols: usize,
 }
@@ -46,7 +46,7 @@ impl<K: Clone, const N: usize, const D: usize> From<[[K; D]; N]> for Matrix<K> {
         Matrix {
             rows: N,
             cols: D,
-            data: vec,
+            _d: vec,
         }
     }
 }
@@ -56,14 +56,14 @@ impl<K> Index<usize> for Matrix<K> {
 
     fn index(&self, index: usize) -> &[K] {
         let start = index * self.cols;
-        &self.data[start..start + self.cols]
+        &self._d[start..start + self.cols]
     }
 }
 
 impl<K> IndexMut<usize> for Matrix<K> {
     fn index_mut(&mut self, index: usize) -> &mut [K] {
         let start = index * self.cols;
-        &mut self.data[start..start + self.cols]
+        &mut self._d[start..start + self.cols]
     }
 }
 
@@ -78,12 +78,12 @@ impl<K: Scalar> Add for Matrix<K> {
         );
 
         let mut vec = Vec::with_capacity(self.rows * self.cols);
-        for i in 0..self.data.len() {
-            vec.push(self.data[i] + other.data[i]);
+        for i in 0..self._d.len() {
+            vec.push(self._d[i] + other._d[i]);
         }
 
         Matrix {
-            data: vec,
+            _d: vec,
             cols: self.cols,
             rows: self.rows,
         }
@@ -94,8 +94,8 @@ impl<K: Scalar> AddAssign<&Matrix<K>> for Matrix<K> {
     fn add_assign(&mut self, rhs: &Matrix<K>) {
         assert_eq!(self.shape(), rhs.shape(), "matrices must be the same size");
 
-        for i in 0..self.data.len() {
-            self.data[i] += rhs.data[i]
+        for i in 0..self._d.len() {
+            self._d[i] += rhs._d[i]
         }
     }
 }
@@ -111,12 +111,12 @@ impl<K: Scalar> Sub for Matrix<K> {
         );
 
         let mut vec = Vec::with_capacity(self.rows * self.cols);
-        for i in 0..self.data.len() {
-            vec.push(self.data[i] - other.data[i]);
+        for i in 0..self._d.len() {
+            vec.push(self._d[i] - other._d[i]);
         }
 
         Matrix {
-            data: vec,
+            _d: vec,
             cols: self.cols,
             rows: self.rows,
         }
@@ -127,33 +127,33 @@ impl<K: Scalar> SubAssign<&Matrix<K>> for Matrix<K> {
     fn sub_assign(&mut self, rhs: &Matrix<K>) {
         assert_eq!(self.shape(), rhs.shape(), "matrices must be the same size");
 
-        for i in 0..self.data.len() {
-            self.data[i] -= rhs.data[i];
+        for i in 0..self._d.len() {
+            self._d[i] -= rhs._d[i];
         }
     }
 }
 
-impl<K: Scalar> Mul<K> for Matrix<K> {
+impl<K: Scalar + Mul<U, Output = K>, U: Scalar> Mul<U> for Matrix<K> {
     type Output = Matrix<K>;
 
-    fn mul(self, a: K) -> Self::Output {
-        let mut vec = Vec::with_capacity(self.data.len());
-        for i in 0..self.data.len() {
-            vec.push(self.data[i] * a);
+    fn mul(self, a: U) -> Self::Output {
+        let mut vec = Vec::with_capacity(self._d.len());
+        for i in 0..self._d.len() {
+            vec.push(self._d[i] * a);
         }
 
         Matrix {
-            data: vec,
+            _d: vec,
             cols: self.cols,
             rows: self.rows,
         }
     }
 }
 
-impl<K: Scalar> MulAssign<&K> for Matrix<K> {
-    fn mul_assign(&mut self, rhs: &K) {
-        for i in 0..self.data.len() {
-            self.data[i] *= *rhs;
+impl<K: Scalar + MulAssign<U>, U: Scalar> MulAssign<&U> for Matrix<K> {
+    fn mul_assign(&mut self, rhs: &U) {
+        for i in 0..self._d.len() {
+            self._d[i] *= *rhs;
         }
     }
 }
@@ -195,7 +195,7 @@ impl<K: Scalar> Mul<&Matrix<K>> for &Matrix<K> {
         }
 
         Matrix {
-            data: vec,
+            _d: vec,
             rows,
             cols,
         }
@@ -251,7 +251,7 @@ impl<K: Scalar> Matrix<K> {
         Matrix {
             rows: self.cols,
             cols: self.rows,
-            data: vec,
+            _d: vec,
         }
     }
 
@@ -358,7 +358,7 @@ impl<K: Scalar> Matrix<K> {
         }
 
         det(
-            self.data.as_slice(),
+            self._d.as_slice(),
             self.rows,
             self.rows,
             &vec![false; self.cols],
@@ -367,30 +367,30 @@ impl<K: Scalar> Matrix<K> {
 
     pub fn inverse(&self) -> Result<Matrix<K>, &'static str> {
         let mut aug_m = Matrix {
-            data: vec![K::default(); self.rows * self.cols * 2],
+            _d: vec![K::default(); self.rows * self.cols * 2],
             cols: self.cols * 2,
             rows: self.rows,
         };
 
         for row in 0..self.rows {
             for col in 0..self.cols {
-                aug_m.data[row * (self.cols * 2) + col] = self[row][col];
+                aug_m._d[row * (self.cols * 2) + col] = self[row][col];
             }
-            aug_m.data[row * (self.cols * 2) + self.cols + row] = K::one();
+            aug_m._d[row * (self.cols * 2) + self.cols + row] = K::one();
         }
 
         aug_m.row_echelon_mut();
 
         let mut vec = Vec::with_capacity(self.rows * self.cols);
 
-        for row in aug_m.data.chunks(self.cols * 2) {
+        for row in aug_m._d.chunks(self.cols * 2) {
             for &v in row.iter().skip(self.cols) {
                 vec.push(v);
             }
         }
 
         Ok(Matrix {
-            data: vec,
+            _d: vec,
             cols: self.cols,
             rows: self.rows,
         })
@@ -401,7 +401,7 @@ impl<K: Scalar> Matrix<K> {
         let mut rank = 0;
 
         let mut cur = 0;
-        for row in mat.data.chunks(self.cols) {
+        for row in mat._d.chunks(self.cols) {
             for (j, v) in row.iter().enumerate().skip(cur) {
                 if *v != K::default() {
                     cur = j + 1;
@@ -424,7 +424,7 @@ impl<K: Scalar> Matrix<K> {
 
         let mut cur = 0;
         let mut rank = 0;
-        for row in mat.data.chunks(self.cols) {
+        for row in mat._d.chunks(self.cols) {
             for (j, v) in row.iter().enumerate().skip(cur) {
                 if *v != K::default() {
                     vec.copy_from_slice(row);
@@ -438,7 +438,7 @@ impl<K: Scalar> Matrix<K> {
         Matrix {
             cols: self.cols,
             rows: rank,
-            data: vec,
+            _d: vec,
         }
     }
 
@@ -448,10 +448,10 @@ impl<K: Scalar> Matrix<K> {
 
         let mut cur = 0;
         let mut rank = 0;
-        for row in mat.data.chunks(self.cols) {
+        for row in mat._d.chunks(self.cols) {
             for (j, v) in row.iter().enumerate().skip(cur) {
                 if *v != K::default() {
-                    for r in self.data.chunks(self.cols) {
+                    for r in self._d.chunks(self.cols) {
                         vec.push(r[cur])
                     }
                     cur = j + 1;
@@ -464,7 +464,7 @@ impl<K: Scalar> Matrix<K> {
         Matrix {
             cols: self.rows,
             rows: rank,
-            data: vec,
+            _d: vec,
         }
     }
 }

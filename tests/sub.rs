@@ -13,7 +13,7 @@ fn test_matrix_sub() {
     let mut u = M!([[1., 2.], [3., 4.]]);
     let v = M!([[7., 4.], [-2., 2.]]);
     u.sub(&v);
-    assert!(u.data.iter().eq(&[-6., -2., 5., 2.]));
+    assert!(u._d.iter().eq(&[-6., -2., 5., 2.]));
 }
 
 #[test]
@@ -63,7 +63,7 @@ fn test_sub_complex_matrix() {
     let mut u = M!([[C!(1., 0.), C!(2., 0.)], [C!(3., 0.), C!(5., 0.)],]);
     let v = M!([[C!(7., 0.), C!(3., 0.)], [C!(-2., 0.), C!(2., 0.)],]);
     u.sub(&v);
-    assert!(u.data.iter().eq(&[
+    assert!(u._d.iter().eq(&[
         C!(-6., 0.),
         C!(-1., 0.),
         C!(5., 0.),

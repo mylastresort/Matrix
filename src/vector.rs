@@ -99,18 +99,18 @@ impl<K: Scalar> SubAssign<&Vector<K>> for Vector<K> {
     }
 }
 
-impl<K: Scalar> Mul<K> for Vector<K> {
+impl<K: Scalar + Mul<U, Output = K>, U: Scalar> Mul<U> for Vector<K> {
     type Output = Self;
 
-    fn mul(self, a: K) -> Self::Output {
+    fn mul(self, a: U) -> Self::Output {
         &self * &a
     }
 }
 
-impl<K: Scalar> Mul<&K> for &Vector<K> {
+impl<K: Scalar + Mul<U, Output = K>, U: Scalar> Mul<&U> for &Vector<K> {
     type Output = Vector<K>;
 
-    fn mul(self, &a: &K) -> Self::Output {
+    fn mul(self, &a: &U) -> Self::Output {
         let mut vec = Vec::with_capacity(self.size());
 
         for i in 0..self.size() {
@@ -121,8 +121,8 @@ impl<K: Scalar> Mul<&K> for &Vector<K> {
     }
 }
 
-impl<K: Scalar> MulAssign<&K> for Vector<K> {
-    fn mul_assign(&mut self, a: &K) {
+impl<K: Scalar + MulAssign<U>, U: Scalar> MulAssign<&U> for Vector<K> {
+    fn mul_assign(&mut self, a: &U) {
         for i in &mut self._d {
             *i *= *a;
         }

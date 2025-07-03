@@ -29,7 +29,7 @@ fn test_matrix_add() {
     let mut u = M!([[1., 2.], [3., 4.]]);
     let v = M!([[7., 4.], [-2., 2.]]);
     u.add(&v);
-    assert!(u.data.iter().eq(&[8., 6., 1., 6.]));
+    assert!(u._d.iter().eq(&[8., 6., 1., 6.]));
 }
 
 #[test]
@@ -63,12 +63,10 @@ fn test_add_complex_matrix() {
     let mut u = M!([[C!(1., 0.), C!(2., 0.)], [C!(3., 0.), C!(5., 0.)],]);
     let v = M!([[C!(7., 0.), C!(3., 0.)], [C!(-2., 0.), C!(2., 0.)],]);
     u.add(&v);
-    assert!(u.data.iter().eq(&[
-        C!(8., 0.),
-        C!(5., 0.),
-        C!(1., 0.),
-        C!(7., 0.)
-    ]));
+    assert!(u
+        ._d
+        .iter()
+        .eq(&[C!(8., 0.), C!(5., 0.), C!(1., 0.), C!(7., 0.)]));
 }
 
 #[test]
