@@ -5,7 +5,7 @@ fn test_vector_add() {
     let mut u = V!([2., 3.]);
     let v = V!([5., 7.]);
     u.add(&v);
-    assert!(u.data.iter().eq(&[7., 10.]));
+    assert!(u._d.iter().eq(&[7., 10.]));
 }
 
 #[test]
@@ -39,7 +39,7 @@ fn test_add_complex_vector() {
     let mut u = V!([C!(1., 2.), C!(-1., -3.)]);
     let v = V!([C!(1., 3.), C!(2., 3.)]);
     u.add(&v);
-    assert!(u.data.iter().eq(&[C!(2., 5.), C!(1., 0.)]));
+    assert!(u._d.iter().eq(&[C!(2., 5.), C!(1., 0.)]));
 }
 
 #[test]

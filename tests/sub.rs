@@ -5,7 +5,7 @@ fn test_vector_sub() {
     let mut u = V!([2., 3.]);
     let v = V!([5., 7.]);
     u.sub(&v);
-    assert!(u.data.iter().eq(&[-3., -4.]));
+    assert!(u._d.iter().eq(&[-3., -4.]));
 }
 
 #[test]
@@ -39,7 +39,7 @@ fn test_sub_complex_vector() {
     let mut u = V!([C!(1., 2.), C!(-1., -3.)]);
     let v = V!([C!(1., 3.), C!(2., 3.)]);
     u.sub(&v);
-    assert!(u.data.iter().eq(&[C!(0., -1.), C!(-3., -6.)]));
+    assert!(u._d.iter().eq(&[C!(0., -1.), C!(-3., -6.)]));
 }
 
 #[test]

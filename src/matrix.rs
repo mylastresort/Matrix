@@ -512,7 +512,7 @@ pub fn projection(fov: f32, ratio: f32, n: f32, f: f32) -> Matrix<f32> {
     let r = t * ratio;
     let (l, b) = (-r, -t);
 
-    Matrix::from([
+    M!([
         [2. * n / (r - l), 0., (r + l) / (r - l), 0.], // (Ps)x
         [0., 2. * n / (t - b), (t + b) / (t - b), 0.], // (Ps)y
         [0., 0., f / (n - f), (n * f) / (n - f)],      // (Ps)z

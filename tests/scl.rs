@@ -5,7 +5,7 @@ fn test_vector_scl() {
     let mut u = V!([2., 3.]);
     let v = 2.;
     u.scl(v);
-    assert!(u.data.iter().eq(&[4., 6.]));
+    assert!(u._d.iter().eq(&[4., 6.]));
 }
 
 #[test]
@@ -38,27 +38,17 @@ fn test_scl_complex_vector() {
     let mut u = V!([C!(1., 2.), C!(-1., -3.)]);
     let v = C!(2., 3.);
     u.scl(v);
-    assert!(u.data.iter().eq(&[
-        C!(-4., 7.),
-        C!(7., -9.)
-    ]));
+    assert!(u._d.iter().eq(&[C!(-4., 7.), C!(7., -9.)]));
 
     u = V!([C!(1., 0.), C!(2., 0.)]);
     let v = C!(2., 3.);
     u.scl(v);
-    assert!(u.data.iter().eq(&[
-        C!(2., 3.),
-        C!(4., 6.)
-    ]));
+    assert!(u._d.iter().eq(&[C!(2., 3.), C!(4., 6.)]));
 
     u = V!([C!(1., 0.), C!(2., 0.), C!(3., 0.)]);
     let v = C!(2., 3.);
     u.scl(v);
-    assert!(u.data.iter().eq(&[
-        C!(2., 3.),
-        C!(4., 6.),
-        C!(6., 9.)
-    ]));
+    assert!(u._d.iter().eq(&[C!(2., 3.), C!(4., 6.), C!(6., 9.)]));
 }
 
 #[test]
@@ -83,7 +73,10 @@ fn test_scl_complex_matrix() {
         C!(8., 12.)
     ]));
 
-    u = M!([[C!(1., 0.), C!(2., 0.), C!(3., 0.)], [C!(4., 0.), C!(5., 0.), C!(6., 0.)]]);
+    u = M!([
+        [C!(1., 0.), C!(2., 0.), C!(3., 0.)],
+        [C!(4., 0.), C!(5., 0.), C!(6., 0.)]
+    ]);
     let v = C!(9., 4.);
     u.scl(v);
     assert!(u.data.iter().eq(&[
@@ -108,8 +101,12 @@ fn test_scl_complex() {
         let b = a.clone();
         a.scl(C!(2., 3.));
         for i in 0..size {
-            assert_eq!(b[i], a[i] / C!(2., 3.),
-                       "a[i] and b[i] must equal for i = {}", i);
+            assert_eq!(
+                b[i],
+                a[i] / C!(2., 3.),
+                "a[i] and b[i] must equal for i = {}",
+                i
+            );
         }
     }
 }

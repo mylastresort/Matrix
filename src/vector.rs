@@ -7,11 +7,15 @@ use crate::scalar::Scalar;
 
 #[derive(Clone, Default)]
 pub struct Vector<K> {
-    pub data: Vec<K>,
+    pub _d: Vec<K>,
 }
 
 #[macro_export]
 macro_rules! V {
+    () => {
+        Vector::default()
+    };
+
     ($values:expr) => {
         Vector::from($values)
     };
@@ -19,21 +23,21 @@ macro_rules! V {
 
 impl<K: Scalar> Debug for Vector<K> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        f.debug_list().entries(self.data.iter()).finish()
+        f.debug_list().entries(self._d.iter()).finish()
     }
 }
 
 impl<K: Clone, const N: usize> From<[K; N]> for Vector<K> {
     fn from(data: [K; N]) -> Self {
         Vector {
-            data: Vec::from(data),
+            _d: Vec::from(data),
         }
     }
 }
 
 impl<K> From<Vec<K>> for Vector<K> {
     fn from(data: Vec<K>) -> Self {
-        Vector { data }
+        Vector { _d: data }
     }
 }
 
@@ -41,7 +45,7 @@ impl<K> Index<usize> for Vector<K> {
     type Output = K;
 
     fn index(&self, index: usize) -> &Self::Output {
-        &self.data[index]
+        &self._d[index]
     }
 }
 
@@ -56,7 +60,7 @@ impl<K: Scalar> Add for Vector<K> {
             vec.push(self[i] + other[i]);
         }
 
-        Vector::from(vec)
+        V!(vec)
     }
 }
 
@@ -65,7 +69,7 @@ impl<K: Scalar> AddAssign<&Vector<K>> for Vector<K> {
         assert_eq!(self.size(), rhs.size(), "vectors must be the same size");
 
         for i in 0..self.size() {
-            self.data[i] += rhs.data[i];
+            self._d[i] += rhs[i];
         }
     }
 }
@@ -78,10 +82,10 @@ impl<K: Scalar> Sub for Vector<K> {
 
         let mut vec = Vec::with_capacity(self.size());
         for i in 0..self.size() {
-            vec.push(self.data[i] - rhs.data[i]);
+            vec.push(self[i] - rhs[i]);
         }
 
-        Vector::from(vec)
+        V!(vec)
     }
 }
 
@@ -90,7 +94,7 @@ impl<K: Scalar> SubAssign<&Vector<K>> for Vector<K> {
         assert_eq!(self.size(), rhs.size(), "vectors must be the same size");
 
         for i in 0..self.size() {
-            self.data[i] -= rhs.data[i];
+            self._d[i] -= rhs[i];
         }
     }
 }
@@ -110,15 +114,16 @@ impl<K: Scalar> Mul<&K> for &Vector<K> {
         let mut vec = Vec::with_capacity(self.size());
 
         for i in 0..self.size() {
-            vec.push(self.data[i] * a);
+            vec.push(self[i] * a);
         }
-        Vector::from(vec)
+
+        V!(vec)
     }
 }
 
 impl<K: Scalar> MulAssign<&K> for Vector<K> {
     fn mul_assign(&mut self, a: &K) {
-        for i in self.data.iter_mut() {
+        for i in &mut self._d {
             *i *= *a;
         }
     }
@@ -129,9 +134,11 @@ impl<K: Scalar> Mul<&[K]> for &Vector<K> {
 
     fn mul(self, rhs: &[K]) -> Self::Output {
         let mut sum = K::default();
-        for i in 0..self.size() {
-            sum += self[i] * rhs[i];
+
+        for (a, b) in self._d.iter().zip(rhs) {
+            sum = a.mul_add(*b, sum);
         }
+
         sum
     }
 }
@@ -164,7 +171,7 @@ impl<K: Scalar> Mul<&Vector<K>> for &Vector<K> {
     type Output = K;
 
     fn mul(self, rhs: &Vector<K>) -> Self::Output {
-        self * &rhs.data
+        self * &rhs._d
     }
 }
 
@@ -186,15 +193,15 @@ pub fn linear_combination<K: Scalar>(
 
     let mut iter = u.iter().zip(coefs);
 
-    if let Some(mut first) = iter.next().map(|(&v, k)| v.clone() * *k) {
-        for (v, k) in iter {
+    if let Some(mut first) = iter.next().map(|(&v, &k)| v.clone() * k) {
+        for (v, &k) in iter {
             for i in 0..first.size() {
-                first.data[i] = v.data[i].mul_add(*k, first.data[i]);
+                first._d[i] = v[i].mul_add(k, first[i]);
             }
         }
         first
     } else {
-        Vector::default()
+        V!()
     }
 }
 
@@ -211,7 +218,7 @@ pub fn cross_product<K: Scalar>(u: &Vector<K>, v: &Vector<K>) -> Vector<K> {
         "vectors must have be of size 3"
     );
 
-    Vector::from([
+    V!([
         (u[1] * v[2]) - (u[2] * v[1]),
         (u[2] * v[0]) - (u[0] * v[2]),
         (u[0] * v[1]) - (u[1] * v[0]),
@@ -220,19 +227,19 @@ pub fn cross_product<K: Scalar>(u: &Vector<K>, v: &Vector<K>) -> Vector<K> {
 
 impl<K: Scalar> Vector<K> {
     pub fn zero(size: usize) -> Self {
-        Vector::from(vec![K::default(); size])
+        V!(vec![K::default(); size])
     }
 
     pub fn size(&self) -> usize {
-        self.data.len()
+        self._d.len()
     }
 
     pub fn first(&self) -> Option<&K> {
-        self.data.first()
+        self._d.first()
     }
 
     pub fn is_empty(&self) -> bool {
-        self.data.is_empty()
+        self._d.is_empty()
     }
 
     pub fn add(&mut self, v: &Vector<K>) {
@@ -254,15 +261,15 @@ impl<K: Scalar> Vector<K> {
     }
 
     pub fn norm_1(&self) -> K::AbsOutput {
-        self.data.iter().map(|&x| x.abs()).sum::<K::AbsOutput>()
+        self._d.iter().map(|&x| x.abs()).sum::<K::AbsOutput>()
     }
 
     pub fn norm(&self) -> K {
-        K::sqrt(self.data.iter().map(|&x| x * x).sum())
+        K::sqrt(self._d.iter().map(|&x| x * x).sum())
     }
 
     pub fn norm_inf(&self) -> K::AbsOutput {
-        self.data.iter().map(|&x| x.abs()).fold(
+        self._d.iter().map(|&x| x.abs()).fold(
             K::AbsOutput::default(),
             |acc, cur| if acc > cur { acc } else { cur },
         )

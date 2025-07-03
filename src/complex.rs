@@ -51,7 +51,7 @@ impl Scalar for Complex {
     }
 
     fn one() -> Self {
-        Complex::from([1., 0.])
+        C!(1., 0.)
     }
 
     fn mul_add(self, a: Self, b: Self) -> Self {
