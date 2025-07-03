@@ -7,6 +7,7 @@ pub mod vector;
 
 use std::ops::{Add, Mul, Sub};
 
+pub use complex::Complex;
 pub use matrix::Matrix;
 pub use vector::Vector;
 

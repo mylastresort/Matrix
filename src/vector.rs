@@ -184,7 +184,6 @@ pub fn linear_combination<K: Scalar>(
         coefs.len(),
         "vectors and scalers must be the same size"
     );
-    assert!(!u.is_empty(), "list must not be empty");
 
     assert!(
         u.iter().all(|v| v.size() == u[0].size()),
@@ -193,13 +192,13 @@ pub fn linear_combination<K: Scalar>(
 
     let mut iter = u.iter().zip(coefs);
 
-    if let Some(mut first) = iter.next().map(|(&v, &k)| v.clone() * k) {
+    if let Some(mut sum) = iter.next().map(|(&v, &k)| v.clone() * k) {
         for (v, &k) in iter {
-            for i in 0..first.size() {
-                first._d[i] = v[i].mul_add(k, first[i]);
+            for i in 0..sum.size() {
+                sum._d[i] = v[i].mul_add(k, sum[i]);
             }
         }
-        first
+        sum
     } else {
         V!()
     }

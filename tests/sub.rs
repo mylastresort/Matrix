@@ -17,6 +17,22 @@ fn test_matrix_sub() {
 }
 
 #[test]
+#[should_panic(expected = "vectors must be the same size")]
+fn test_vector_sub_fail() {
+    let mut u = V!([2., 3.]);
+    let v = V!([5., 7., 8.]);
+    u.sub(&v);
+}
+
+#[test]
+#[should_panic(expected = "matrices must be the same size")]
+fn test_matrix_sub_fail() {
+    let mut u = M!([[1., 2.], [3., 4.]]);
+    let v = M!([[7., 4.], [-2., 2.], [1., 1.]]);
+    u.sub(&v);
+}
+
+#[test]
 fn test_vector_sub_2() {
     for i in 0..20 {
         let size = i;
