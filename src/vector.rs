@@ -10,6 +10,13 @@ pub struct Vector<K> {
     pub data: Vec<K>,
 }
 
+#[macro_export]
+macro_rules! V {
+    ($values:expr) => {
+        Vector::from($values)
+    };
+}
+
 impl<K: Scalar> Debug for Vector<K> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.debug_list().entries(self.data.iter()).finish()

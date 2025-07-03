@@ -13,6 +13,13 @@ pub struct Matrix<K> {
     pub cols: usize,
 }
 
+#[macro_export]
+macro_rules! M {
+    ($values:expr) => {
+        Matrix::from($values)
+    };
+}
+
 impl<K: Scalar> Debug for Matrix<K> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.write_str("[")?;
@@ -199,6 +206,7 @@ impl<K: Scalar> Matrix<K> {
     pub fn shape(&self) -> (usize, usize) {
         (self.rows, self.cols)
     }
+
     pub fn is_square(&self) -> bool {
         self.rows == self.cols
     }

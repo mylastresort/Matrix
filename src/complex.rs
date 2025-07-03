@@ -13,6 +13,12 @@ pub struct Complex {
     y: f32,
 }
 
+#[macro_export]
+macro_rules! C {
+    ($r:expr, $i:expr) => {
+        Complex::from([$r, $i])
+    };
+}
 
 impl From<[f32; 2]> for Complex {
     fn from(value: [f32; 2]) -> Self {
