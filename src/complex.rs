@@ -5,7 +5,7 @@ use std::{
     },
 };
 
-use crate::scalar::Scalar;
+use crate::scalar::{Lerp, MulAdd, Scalar};
 
 #[derive(Copy, Clone, Default, PartialEq, PartialOrd, Debug)]
 pub struct Complex {
@@ -54,13 +54,6 @@ impl Scalar for Complex {
         C!(1., 0.)
     }
 
-    fn mul_add(self, a: Self, b: Self) -> Self {
-        Complex {
-            x: self.x.mul_add(a.x, self.y.mul_add(-a.y, b.x)),
-            y: self.x.mul_add(a.y, self.y.mul_add(a.x, b.y)),
-        }
-    }
-
     type TanOutput = Complex;
     fn tan(self) -> Self::TanOutput {
         Complex {
@@ -84,6 +77,16 @@ impl Scalar for Complex {
         Complex {
             x: f32::cos(self.x) * f32::cosh(self.y),
             y: f32::sin(self.x) * f32::sinh(self.y),
+        }
+    }
+}
+
+impl Lerp for Complex {
+    fn lerp(u: Self, v: Self, t: f32) -> Self {
+        match t {
+            0. => u,
+            1. => v,
+            p => u + (v - u) * p,
         }
     }
 }
@@ -178,6 +181,15 @@ impl MulAssign<&Complex> for Complex {
     }
 }
 
+impl MulAdd<Complex, Complex> for Complex {
+    fn mul_add(self, a: Self, b: &Self) -> Self {
+        Complex {
+            x: self.x.mul_add(a.x, self.y.mul_add(-a.y, b.x)),
+            y: self.x.mul_add(a.y, self.y.mul_add(a.x, b.y)),
+        }
+    }
+}
+
 impl Mul<f32> for Complex {
     type Output = Complex;
     fn mul(self, rhs: f32) -> Self::Output {
@@ -192,6 +204,15 @@ impl MulAssign<f32> for Complex {
     fn mul_assign(&mut self, rhs: f32) {
         self.x *= rhs;
         self.y *= rhs;
+    }
+}
+
+impl MulAdd<f32, Complex> for Complex {
+    fn mul_add(self, a: f32, b: &Self) -> Self {
+        Complex {
+            x: self.x.mul_add(a, b.x),
+            y: self.y.mul_add(a, b.y),
+        }
     }
 }
 

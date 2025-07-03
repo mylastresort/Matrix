@@ -4,7 +4,10 @@ use std::{
     ops::{Add, AddAssign, Index, IndexMut, Mul, MulAssign, Sub, SubAssign},
 };
 
-use crate::{scalar::Scalar, vector::Vector};
+use crate::{
+    scalar::{Lerp, MulAdd, Scalar},
+    vector::Vector,
+};
 
 #[derive(Clone)]
 pub struct Matrix<K> {
@@ -158,6 +161,26 @@ impl<K: Scalar + MulAssign<U>, U: Scalar> MulAssign<&U> for Matrix<K> {
     }
 }
 
+impl<K: Scalar + Mul<U, Output = K> + MulAdd<U, K>, U: Scalar>
+    MulAdd<U, Matrix<K>> for Matrix<K>
+{
+    fn mul_add(self, a: U, b: &Matrix<K>) -> Self {
+        assert!(self.shape() == b.shape(), "matrices must be the same size");
+
+        let mut vec = Vec::with_capacity(self.rows * self.cols);
+
+        for i in 0..self._d.len() {
+            vec.push(self._d[i].mul_add(a, &b._d[i]));
+        }
+
+        Matrix {
+            _d: vec,
+            rows: self.rows,
+            cols: self.cols,
+        }
+    }
+}
+
 impl<K: Scalar> Mul<&Vector<K>> for &Matrix<K> {
     type Output = Vector<K>;
 
@@ -198,6 +221,28 @@ impl<K: Scalar> Mul<&Matrix<K>> for &Matrix<K> {
             _d: vec,
             rows,
             cols,
+        }
+    }
+}
+
+impl<K: Scalar + MulAdd<f32, K>> Lerp for Matrix<K> {
+    fn lerp(u: Self, v: Self, t: f32) -> Self {
+        match t {
+            0. => u,
+            1. => v,
+            p => {
+                let mut vec = Vec::with_capacity(u._d.len());
+
+                for i in 0..u._d.len() {
+                    vec.push((v._d[i] - u._d[i]).mul_add(p, &u._d[i]))
+                }
+
+                Matrix {
+                    _d: vec,
+                    cols: u.cols,
+                    rows: u.rows,
+                }
+            }
         }
     }
 }

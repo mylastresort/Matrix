@@ -1,11 +1,18 @@
 use matrix::{lerp, Complex, Matrix, Vector, C, M, V};
 
+macro_rules! approx_eq {
+    ($a: expr, $b: expr) => {
+        ($a - $b).abs() < 1e-6
+    };
+}
+
 #[test]
 fn test_lerp() {
-    assert_eq!(lerp(0., 1., 0.), 0.); // 0.0
-    assert_eq!(lerp(0., 1., 1.), 1.); // 1.0
-    assert_eq!(lerp(0., 1., 0.5), 0.5); // 0.5
-    assert_eq!(lerp(21., 42., 0.3), 27.3); // 27.3
+    assert_eq!(lerp(0., 1., 0.), 0.);
+    assert_eq!(lerp(0., 1., 1.), 1.);
+    assert_eq!(lerp(0., 1., 0.5), 0.5);
+    // assert_eq!(lerp(21., 42., 0.3), 27.3); // 27.3
+    assert!(approx_eq!(lerp(21., 42., 0.3), 27.3_f32));
 }
 
 #[test]

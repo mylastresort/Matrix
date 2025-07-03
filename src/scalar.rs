@@ -15,6 +15,8 @@ pub trait Scalar:
     + std::ops::MulAssign
     + std::ops::DivAssign
     + std::iter::Sum
+    + MulAdd<Self, Self>
+    + Lerp
 {
     type AbsOutput: Sum<Self::AbsOutput> + Default + std::cmp::PartialOrd;
     type TanOutput;
@@ -22,13 +24,24 @@ pub trait Scalar:
     type SinOutput;
 
     fn abs(self) -> Self::AbsOutput;
-    fn mul_add(self, a: Self, b: Self) -> Self;
     fn sqrt(v: Self) -> Self;
     fn one() -> Self;
     fn inv(self) -> Self;
     fn tan(self) -> Self::TanOutput;
     fn sin(self) -> Self::SinOutput;
     fn cos(self) -> Self::CosOutput;
+}
+
+pub trait MulAdd<U, V> {
+    fn mul_add(self, a: U, b: &V) -> Self;
+}
+
+pub trait Lerp {
+    fn lerp(u: Self, v: Self, t: f32) -> Self;
+}
+
+pub fn lerp<V: Lerp>(u: V, v: V, t: f32) -> V {
+    V::lerp(u, v, t)
 }
 
 impl Scalar for f32 {
@@ -46,10 +59,6 @@ impl Scalar for f32 {
 
     fn one() -> Self {
         1.
-    }
-
-    fn mul_add(self, a: Self, b: Self) -> Self {
-        self.mul_add(a, b)
     }
 
     fn inv(self) -> Self {
@@ -85,10 +94,6 @@ impl Scalar for f64 {
         1.
     }
 
-    fn mul_add(self, a: Self, b: Self) -> Self {
-        self.mul_add(a, b)
-    }
-
     fn inv(self) -> Self {
         1. / self
     }
@@ -106,5 +111,37 @@ impl Scalar for f64 {
     type SinOutput = f64;
     fn sin(self) -> Self::SinOutput {
         f64::sin(self)
+    }
+}
+
+impl MulAdd<f32, f32> for f32 {
+    fn mul_add(self, a: f32, b: &f32) -> Self {
+        self.mul_add(a, *b)
+    }
+}
+
+impl MulAdd<f64, f64> for f64 {
+    fn mul_add(self, a: f64, b: &f64) -> Self {
+        self.mul_add(a, *b)
+    }
+}
+
+impl Lerp for f32 {
+    fn lerp(u: Self, v: Self, t: f32) -> Self {
+        match t {
+            0. => u,
+            1. => v,
+            p => u + (v - u) * p,
+        }
+    }
+}
+
+impl Lerp for f64 {
+    fn lerp(u: Self, v: Self, t: f32) -> Self {
+        match t {
+            0. => u,
+            1. => v,
+            p => u + (v - u) * p as f64,
+        }
     }
 }

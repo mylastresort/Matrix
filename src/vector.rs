@@ -3,7 +3,7 @@ use std::{
     ops::{Add, AddAssign, Index, Mul, MulAssign, Sub, SubAssign},
 };
 
-use crate::scalar::Scalar;
+use crate::scalar::{Lerp, MulAdd, Scalar};
 
 #[derive(Clone, Default)]
 pub struct Vector<K> {
@@ -129,6 +129,22 @@ impl<K: Scalar + MulAssign<U>, U: Scalar> MulAssign<&U> for Vector<K> {
     }
 }
 
+impl<K: Scalar + Mul<U, Output = K> + MulAdd<U, K>, U: Scalar>
+    MulAdd<U, Vector<K>> for Vector<K>
+{
+    fn mul_add(self, a: U, b: &Vector<K>) -> Self {
+        assert!(self.size() == b.size(), "vectors must be the same size");
+
+        let mut vec = Vec::with_capacity(self.size());
+
+        for i in 0..self.size() {
+            vec.push(self[i].mul_add(a, &b[i]))
+        }
+
+        V!(vec)
+    }
+}
+
 impl<K: Scalar> Mul<&[K]> for &Vector<K> {
     type Output = K;
 
@@ -136,7 +152,7 @@ impl<K: Scalar> Mul<&[K]> for &Vector<K> {
         let mut sum = K::default();
 
         for (a, b) in self._d.iter().zip(rhs) {
-            sum = a.mul_add(*b, sum);
+            sum = a.mul_add(*b, &sum);
         }
 
         sum
@@ -195,12 +211,30 @@ pub fn linear_combination<K: Scalar>(
     if let Some(mut sum) = iter.next().map(|(&v, &k)| v.clone() * k) {
         for (v, &k) in iter {
             for i in 0..sum.size() {
-                sum._d[i] = v[i].mul_add(k, sum[i]);
+                sum._d[i] = v[i].mul_add(k, &sum[i]);
             }
         }
         sum
     } else {
         V!()
+    }
+}
+
+impl<K: Scalar + MulAdd<f32, K>> Lerp for Vector<K> {
+    fn lerp(u: Self, v: Self, t: f32) -> Self {
+        match t {
+            0. => u,
+            1. => v,
+            p => {
+                let mut vec = Vec::with_capacity(u.size());
+
+                for i in 0..u.size() {
+                    vec.push((v[i] - u[i]).mul_add(p, &u[i]))
+                }
+
+                V!(vec)
+            }
+        }
     }
 }
 
