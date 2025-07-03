@@ -13,6 +13,7 @@ pub struct Complex {
     y: f32,
 }
 
+
 impl From<[f32; 2]> for Complex {
     fn from(value: [f32; 2]) -> Self {
         Complex {
@@ -83,10 +84,7 @@ impl Scalar for Complex {
 
 impl Sum for Complex {
     fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
-        iter.fold(Complex::default(), |a, b| Complex {
-            x: a.x + b.x,
-            y: a.y + b.y,
-        })
+        iter.fold(Complex::default(), |a, b| a + b)
     }
 }
 
