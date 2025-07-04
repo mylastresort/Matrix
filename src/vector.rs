@@ -10,6 +10,19 @@ pub struct Vector<K> {
     pub _d: Vec<K>,
 }
 
+pub trait Dot<K> {
+    fn dot(&self, v: &Vector<K>) -> K;
+}
+
+pub trait Angle {
+    type Output;
+    fn angle_cos(u: &Self, v: &Self) -> Self::Output;
+}
+
+pub fn angle_cos<V: Angle>(u: &V, v: &V) -> V::Output {
+    V::angle_cos(u, v)
+}
+
 #[macro_export]
 macro_rules! V {
     () => {
@@ -129,68 +142,6 @@ impl<K: Scalar + MulAssign<U>, U: Scalar> MulAssign<&U> for Vector<K> {
     }
 }
 
-impl<K: Scalar + Mul<U, Output = K> + MulAdd<U, K>, U: Scalar>
-    MulAdd<U, Vector<K>> for Vector<K>
-{
-    fn mul_add(self, a: &U, b: &Vector<K>) -> Self {
-        assert!(self.size() == b.size(), "vectors must be the same size");
-
-        let mut vec = Vec::with_capacity(self.size());
-
-        for i in 0..self.size() {
-            vec.push(self[i].mul_add(a, &b[i]))
-        }
-
-        V!(vec)
-    }
-}
-
-impl<K: Scalar> Mul<&[K]> for &Vector<K> {
-    type Output = K;
-
-    fn mul(self, rhs: &[K]) -> Self::Output {
-        let mut sum = K::default();
-
-        for (a, b) in self._d.iter().zip(rhs) {
-            sum = a.mul_add(b, &sum);
-        }
-
-        sum
-    }
-}
-
-impl<K: Scalar> Mul<&Vector<K>> for &[K] {
-    type Output = K;
-
-    fn mul(self, rhs: &Vector<K>) -> Self::Output {
-        rhs * self
-    }
-}
-
-impl<K: Scalar> Mul<&Vec<K>> for &Vector<K> {
-    type Output = K;
-
-    fn mul(self, rhs: &Vec<K>) -> Self::Output {
-        self * &rhs[..]
-    }
-}
-
-impl<K: Scalar> Mul<&Vector<K>> for &Vec<K> {
-    type Output = K;
-
-    fn mul(self, rhs: &Vector<K>) -> Self::Output {
-        rhs * self
-    }
-}
-
-impl<K: Scalar> Mul<&Vector<K>> for &Vector<K> {
-    type Output = K;
-
-    fn mul(self, rhs: &Vector<K>) -> Self::Output {
-        self * &rhs._d
-    }
-}
-
 pub fn linear_combination<K: Scalar>(
     u: &[&Vector<K>],
     coefs: &[K],
@@ -238,16 +189,6 @@ impl<K: Scalar + MulAdd<f32, K>> Lerp for Vector<K> {
     }
 }
 
-pub fn angle_cos<K: Scalar>(u: &Vector<K>, v: &Vector<K>) -> K
-where
-    K: std::ops::Div<K::AbsOutput, Output = K>,
-{
-    assert_eq!(u.size(), v.size(), "vectors must be the same size");
-    assert!(!u.is_empty(), "vectors must be the same size");
-
-    u.dot(v) / (u.norm() * v.norm())
-}
-
 pub fn cross_product<K: Scalar>(u: &Vector<K>, v: &Vector<K>) -> Vector<K> {
     assert!(
         u.size() == 3 && v.size() == u.size(),
@@ -288,12 +229,6 @@ impl<K: Scalar> Vector<K> {
 
     pub fn scl(&mut self, a: K) {
         *self *= &a;
-    }
-
-    pub fn dot(&self, v: &Vector<K>) -> K {
-        assert_eq!(v.size(), self.size(), "vectors must be the same size");
-
-        self * v
     }
 
     pub fn norm_1(&self) -> K::AbsOutput {

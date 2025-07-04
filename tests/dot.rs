@@ -1,4 +1,4 @@
-use matrix::{Complex, Vector, C, V};
+use matrix::{Complex, Dot, Vector, C, V};
 
 #[test]
 fn test_dot() {
@@ -35,9 +35,9 @@ fn test_dot_panic() {
 fn test_dot_complex() {
     let u = V!([C!(1., 2.), C!(3., 4.)]);
     let v = V!([C!(5., 6.), C!(7., 8.)]);
-    assert_eq!(u.dot(&v), C!(-18., 68.));
+    assert_eq!(u.dot(&v), C!(70., 8.));
 
     let u = V!([C!(1., 2.)]);
     let v = V!([C!(3., 4.)]);
-    assert_eq!(u.dot(&v), C!(-5., 10.));
+    assert_eq!(u.dot(&v), C!(11., 2.));
 }

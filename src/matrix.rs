@@ -6,7 +6,8 @@ use std::{
 
 use crate::{
     scalar::{Lerp, MulAdd, Scalar},
-    vector::Vector,
+    vector::{Dot, Vector},
+    V,
 };
 
 #[derive(Clone)]
@@ -181,7 +182,10 @@ impl<K: Scalar + Mul<U, Output = K> + MulAdd<U, K>, U: Scalar>
     }
 }
 
-impl<K: Scalar> Mul<&Vector<K>> for &Matrix<K> {
+impl<'a, K: Scalar> Mul<&Vector<K>> for &Matrix<K>
+where
+    [K]: Dot<K>,
+{
     type Output = Vector<K>;
 
     fn mul(self, rhs: &Vector<K>) -> Self::Output {
@@ -193,9 +197,9 @@ impl<K: Scalar> Mul<&Vector<K>> for &Matrix<K> {
 
         let mut vec = Vec::with_capacity(rhs.size());
         for i in 0..rhs.size() {
-            vec.push(&self[i] * rhs);
+            vec.push(self[i].dot(rhs));
         }
-        Vector::from(vec)
+        V!(vec)
     }
 }
 
@@ -268,7 +272,10 @@ impl<K: Scalar> Matrix<K> {
         *self *= &a;
     }
 
-    pub fn mul_vec(&self, vec: &Vector<K>) -> Vector<K> {
+    pub fn mul_vec(&self, vec: &Vector<K>) -> Vector<K>
+    where
+        [K]: Dot<K>,
+    {
         self * vec
     }
 

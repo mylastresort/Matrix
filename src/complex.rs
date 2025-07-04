@@ -5,7 +5,11 @@ use std::{
     },
 };
 
-use crate::scalar::{Lerp, MulAdd, Scalar, Sqrt};
+use crate::{
+    scalar::{Lerp, MulAdd, Scalar, Sqrt},
+    vector::Angle,
+    Dot, Vector, V,
+};
 
 #[derive(Copy, Clone, Default, PartialEq, PartialOrd, Debug)]
 pub struct Complex {
@@ -247,5 +251,106 @@ impl DivAssign for Complex {
         self.y =
             (self.y * rhs.x - self.x * rhs.y) / (rhs.x.powi(2) + rhs.y.powi(2));
         self.x = x;
+    }
+}
+
+impl Dot<Complex> for [Complex] {
+    fn dot(&self, v: &Vector<Complex>) -> Complex {
+        assert_eq!(v.size(), self.len(), "vectors must be the same size");
+
+        self * v
+    }
+}
+
+impl Dot<Complex> for Vector<Complex> {
+    fn dot(&self, v: &Vector<Complex>) -> Complex {
+        assert_eq!(v.size(), self.size(), "vectors must be the same size");
+
+        self * v
+    }
+}
+
+impl Mul<&Vector<Complex>> for &Vector<Complex> {
+    type Output = Complex;
+
+    fn mul(self, rhs: &Vector<Complex>) -> Self::Output {
+        self * &rhs._d
+    }
+}
+
+impl Mul<&Vec<Complex>> for &Vector<Complex> {
+    type Output = Complex;
+
+    fn mul(self, rhs: &Vec<Complex>) -> Self::Output {
+        self * &rhs[..]
+    }
+}
+
+impl Mul<&Vector<Complex>> for &Vec<Complex> {
+    type Output = Complex;
+
+    fn mul(self, rhs: &Vector<Complex>) -> Self::Output {
+        rhs * self
+    }
+}
+
+fn conj(c: &Complex) -> Complex {
+    Complex { x: c.x, y: -c.y }
+}
+
+impl Mul<&[Complex]> for &Vector<Complex> {
+    type Output = Complex;
+
+    fn mul(self, rhs: &[Complex]) -> Self::Output {
+        let mut sum = Complex::default();
+
+        for (a, b) in self._d.iter().zip(rhs) {
+            sum = a.mul_add(&conj(b), &sum);
+        }
+
+        sum
+    }
+}
+
+impl Mul<&Vector<Complex>> for &[Complex] {
+    type Output = Complex;
+
+    fn mul(self, rhs: &Vector<Complex>) -> Self::Output {
+        rhs * self
+    }
+}
+
+impl MulAdd<Complex, Vector<Complex>> for Vector<Complex> {
+    fn mul_add(self, a: &Complex, b: &Vector<Complex>) -> Self {
+        assert!(self.size() == b.size(), "vectors must be the same size");
+
+        let mut vec = Vec::with_capacity(self.size());
+
+        for i in 0..self.size() {
+            vec.push(self[i].mul_add(a, &b[i]))
+        }
+
+        V!(vec)
+    }
+}
+
+impl MulAdd<f32, Vector<Complex>> for Vector<Complex> {
+    fn mul_add(self, a: &f32, b: &Vector<Complex>) -> Self {
+        assert!(self.size() == b.size(), "vectors must be the same size");
+
+        let mut vec = Vec::with_capacity(self.size());
+
+        for i in 0..self.size() {
+            vec.push(self[i].mul_add(a, &b[i]))
+        }
+
+        V!(vec)
+    }
+}
+
+impl Angle for Vector<Complex> {
+    type Output = f32;
+    fn angle_cos(u: &Vector<Complex>, v: &Vector<Complex>) -> Self::Output {
+        u.dot(v).x / (u.norm() * v.norm())
     }
 }
