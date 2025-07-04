@@ -1,6 +1,6 @@
 use std::{
     f32::consts::PI,
-    fmt::Debug,
+    fmt::{Debug, Display},
     ops::{Add, AddAssign, Index, IndexMut, Mul, MulAssign, Sub, SubAssign},
 };
 
@@ -17,6 +17,10 @@ pub struct Matrix<K> {
     pub cols: usize,
 }
 
+pub trait Transpose<K> {
+    fn transpose(&self) -> Matrix<K>;
+}
+
 #[macro_export]
 macro_rules! M {
     ($values:expr) => {
@@ -25,6 +29,20 @@ macro_rules! M {
 }
 
 impl<K: Scalar> Debug for Matrix<K> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_str("[")?;
+        for i in 0..self.rows {
+            write!(f, "{:?}", &self[i])?;
+            if i != self.rows - 1 {
+                writeln!(f, ",")?;
+            }
+        }
+        f.write_str("]")?;
+        Ok(())
+    }
+}
+
+impl<K: Scalar> Display for Matrix<K> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         f.write_str("[")?;
         for i in 0..self.rows {
@@ -207,6 +225,11 @@ impl<K: Scalar> Mul<&Matrix<K>> for &Matrix<K> {
     type Output = Matrix<K>;
 
     fn mul(self, rhs: &Matrix<K>) -> Self::Output {
+        assert_eq!(
+            self.cols, rhs.rows,
+            "bad input for matrix and matrix multiplication"
+        );
+
         let cols = rhs.cols;
         let rows = self.rows;
         let mut vec = Vec::with_capacity(rows * cols);
@@ -289,21 +312,6 @@ impl<K: Scalar> Matrix<K> {
         match self.rows {
             0 => None,
             _ => Some((0..self.rows).map(|i| self[i][i]).sum()),
-        }
-    }
-
-    pub fn transpose(&self) -> Matrix<K> {
-        let mut vec = Vec::with_capacity(self.rows * self.cols);
-        for i in 0..self.cols {
-            for j in 0..self.rows {
-                vec.push(self[j][i]);
-            }
-        }
-
-        Matrix {
-            rows: self.cols,
-            cols: self.rows,
-            _d: vec,
         }
     }
 

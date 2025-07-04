@@ -1,9 +1,10 @@
 use std::ops::Mul;
 
 use crate::{
+    matrix::Transpose,
     scalar::{Lerp, MulAdd, Sqrt},
     vector::Angle,
-    Dot, Scalar, Vector, V,
+    Dot, Matrix, Scalar, Vector, V,
 };
 
 impl Scalar for f32 {
@@ -143,5 +144,22 @@ impl Angle for Vector<f32> {
     type Output = f32;
     fn angle_cos(u: &Vector<f32>, v: &Vector<f32>) -> Self::Output {
         u.dot(v) / (u.norm() * v.norm())
+    }
+}
+
+impl Transpose<f32> for Matrix<f32> {
+    fn transpose(&self) -> Matrix<f32> {
+        let mut vec = Vec::with_capacity(self.rows * self.cols);
+        for i in 0..self.cols {
+            for j in 0..self.rows {
+                vec.push(self[j][i]);
+            }
+        }
+
+        Matrix {
+            rows: self.cols,
+            cols: self.rows,
+            _d: vec,
+        }
     }
 }

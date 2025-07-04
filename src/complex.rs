@@ -1,4 +1,5 @@
 use std::{
+    fmt::{Debug, Display},
     iter::Sum,
     ops::{
         Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign,
@@ -6,15 +7,20 @@ use std::{
 };
 
 use crate::{
+    matrix::Transpose,
     scalar::{Lerp, MulAdd, Scalar, Sqrt},
     vector::Angle,
-    Dot, Vector, V,
+    Dot, Matrix, Vector, V,
 };
 
-#[derive(Copy, Clone, Default, PartialEq, PartialOrd, Debug)]
+#[derive(Copy, Clone, Default, PartialEq, PartialOrd)]
 pub struct Complex {
     pub x: f32,
     pub y: f32,
+}
+
+pub trait Conj {
+    fn conj(&self) -> Complex;
 }
 
 #[macro_export]
@@ -22,6 +28,18 @@ macro_rules! C {
     ($r:expr, $i:expr) => {
         Complex::from([$r, $i])
     };
+}
+
+impl Debug for Complex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({:.2} + {:.2}i)", self.x, self.y)
+    }
+}
+
+impl Display for Complex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({:.2} + {:.2}i)", self.x, self.y)
+    }
 }
 
 impl From<[f32; 2]> for Complex {
@@ -37,13 +55,13 @@ impl Scalar for Complex {
     type AbsOutput = f32;
 
     fn abs(&self) -> Self::AbsOutput {
-        f32::sqrt(self.x.powi(2) + self.y.powi(2))
+        (self.x.powi(2) + self.y.powi(2)).powf(0.5)
     }
 
     fn inv(self) -> Self {
         Complex {
             x: self.x / (self.x.powi(2) + self.y.powi(2)),
-            y: self.y / (self.x.powi(2) + self.y.powi(2)),
+            y: -self.y / (self.x.powi(2) + self.y.powi(2)),
         }
     }
 
@@ -254,14 +272,6 @@ impl DivAssign for Complex {
     }
 }
 
-impl Dot<Complex> for [Complex] {
-    fn dot(&self, v: &Vector<Complex>) -> Complex {
-        assert_eq!(v.size(), self.len(), "vectors must be the same size");
-
-        self * v
-    }
-}
-
 impl Dot<Complex> for Vector<Complex> {
     fn dot(&self, v: &Vector<Complex>) -> Complex {
         assert_eq!(v.size(), self.size(), "vectors must be the same size");
@@ -286,16 +296,13 @@ impl Mul<&Vec<Complex>> for &Vector<Complex> {
     }
 }
 
-impl Mul<&Vector<Complex>> for &Vec<Complex> {
-    type Output = Complex;
-
-    fn mul(self, rhs: &Vector<Complex>) -> Self::Output {
-        rhs * self
+impl Conj for Complex {
+    fn conj(&self) -> Complex {
+        Complex {
+            x: self.x,
+            y: -self.y,
+        }
     }
-}
-
-fn conj(c: &Complex) -> Complex {
-    Complex { x: c.x, y: -c.y }
 }
 
 impl Mul<&[Complex]> for &Vector<Complex> {
@@ -305,10 +312,18 @@ impl Mul<&[Complex]> for &Vector<Complex> {
         let mut sum = Complex::default();
 
         for (a, b) in self._d.iter().zip(rhs) {
-            sum = a.mul_add(&conj(b), &sum);
+            sum = a.mul_add(&b.conj(), &sum);
         }
 
         sum
+    }
+}
+
+impl Dot<Complex> for [Complex] {
+    fn dot(&self, v: &Vector<Complex>) -> Complex {
+        assert_eq!(v.size(), self.len(), "vectors must be the same size");
+
+        self * v
     }
 }
 
@@ -316,10 +331,15 @@ impl Mul<&Vector<Complex>> for &[Complex] {
     type Output = Complex;
 
     fn mul(self, rhs: &Vector<Complex>) -> Self::Output {
-        rhs * self
+        let mut sum = Complex::default();
+
+        for (a, b) in self.iter().zip(rhs._d.iter()) {
+            sum = a.mul_add(&b.conj(), &sum);
+        }
+
+        sum
     }
 }
-
 impl MulAdd<Complex, Vector<Complex>> for Vector<Complex> {
     fn mul_add(self, a: &Complex, b: &Vector<Complex>) -> Self {
         assert!(self.size() == b.size(), "vectors must be the same size");
@@ -352,5 +372,22 @@ impl Angle for Vector<Complex> {
     type Output = f32;
     fn angle_cos(u: &Vector<Complex>, v: &Vector<Complex>) -> Self::Output {
         u.dot(v).x / (u.norm() * v.norm())
+    }
+}
+
+impl Transpose<Complex> for Matrix<Complex> {
+    fn transpose(&self) -> Matrix<Complex> {
+        let mut vec = Vec::with_capacity(self.rows * self.cols);
+        for i in 0..self.cols {
+            for j in 0..self.rows {
+                vec.push(self[j][i].conj());
+            }
+        }
+
+        Matrix {
+            rows: self.cols,
+            cols: self.rows,
+            _d: vec,
+        }
     }
 }

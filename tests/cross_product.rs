@@ -1,25 +1,36 @@
-use matrix::{cross_product, Vector};
+use matrix::{cross_product, Complex, Vector, C, V};
 
 #[test]
 fn test_cross_product() {
-    let u = Vector::from([0., 0., 1.]);
-    let v = Vector::from([1., 0., 0.]);
+    let u = V!([0., 0., 1.]);
+    let v = V!([1., 0., 0.]);
     let a = cross_product(&u, &v);
-    assert_eq!(a[0], 0.);
-    assert_eq!(a[1], 1.);
-    assert_eq!(a[2], 0.);
+    assert!(a._d.iter().eq(&[0., 1., 0.]));
 
-    let u = Vector::from([1., 2., 3.]);
-    let v = Vector::from([4., 5., 6.]);
+    let u = V!([1., 2., 3.]);
+    let v = V!([4., 5., 6.]);
     let b = cross_product(&u, &v);
-    assert_eq!(b[0], -3.);
-    assert_eq!(b[1], 6.);
-    assert_eq!(b[2], -3.);
+    assert!(b._d.iter().eq(&[-3., 6., -3.]));
 
-    let u = Vector::from([4., 2., -3.]);
-    let v = Vector::from([-2., -5., 16.]);
+    let u = V!([4., 2., -3.]);
+    let v = V!([-2., -5., 16.]);
     let c = cross_product(&u, &v);
-    assert_eq!(c[0], 17.);
-    assert_eq!(c[1], -58.);
-    assert_eq!(c[2], -16.);
+    assert!(c._d.iter().eq(&[17., -58., -16.]));
+}
+
+#[test]
+#[should_panic(expected = "vectors must have be of size 3")]
+fn test_cross_product_invalid_length() {
+    let u = V!([1., 2.]);
+    let v = V!([3., 4., 5.]);
+    cross_product(&u, &v);
+    cross_product(&v, &u);
+}
+
+#[test]
+fn test_cross_product_complex() {
+    let u = V!([C!(1., 2.), C!(3., 4.), C!(5., 6.)]);
+    let v = V!([C!(7., 8.), C!(9., 10.), C!(11., 12.)]);
+    let a = cross_product(&u, &v);
+    assert!(a._d.iter().eq(&[C!(0., -24.), C!(0., 48.), C!(0., -24.)]));
 }

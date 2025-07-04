@@ -8,6 +8,6 @@ pub mod vec3;
 pub mod vector;
 
 pub use complex::Complex;
-pub use matrix::{projection, Matrix};
+pub use matrix::{projection, Matrix, Transpose};
 pub use scalar::{lerp, Scalar};
 pub use vector::{angle_cos, cross_product, linear_combination, Dot, Vector};
