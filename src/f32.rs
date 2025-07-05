@@ -3,6 +3,7 @@ use std::ops::Mul;
 use crate::{
     matrix::Transpose,
     scalar::{Lerp, MulAdd, Sqrt},
+    utils::EPSILON,
     vector::Angle,
     Dot, Matrix, Scalar, Vector, V,
 };
@@ -39,6 +40,10 @@ impl Scalar for f32 {
 
     fn sin(self) -> Self::SinOutput {
         f32::sin(self)
+    }
+
+    fn is_non_zero(&self) -> bool {
+        self.abs() > EPSILON as f32
     }
 }
 
@@ -160,6 +165,46 @@ impl Transpose<f32> for Matrix<f32> {
             rows: self.cols,
             cols: self.rows,
             _d: vec,
+        }
+    }
+}
+
+impl Lerp for Vector<f32> {
+    fn lerp(u: Self, v: Self, t: f32) -> Self {
+        match t {
+            0. => u,
+            1. => v,
+            p => {
+                let mut vec = Vec::with_capacity(u.size());
+
+                for i in 0..u.size() {
+                    vec.push((v[i] - u[i]).mul_add(p, u[i]))
+                }
+
+                V!(vec)
+            }
+        }
+    }
+}
+
+impl Lerp for Matrix<f32> {
+    fn lerp(u: Self, v: Self, t: f32) -> Self {
+        match t {
+            0. => u,
+            1. => v,
+            p => {
+                let mut vec = Vec::with_capacity(u._d.len());
+
+                for i in 0..u._d.len() {
+                    vec.push((v._d[i] - u._d[i]).mul_add(p, u._d[i]))
+                }
+
+                Matrix {
+                    _d: vec,
+                    cols: u.cols,
+                    rows: u.rows,
+                }
+            }
         }
     }
 }

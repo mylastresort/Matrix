@@ -37,6 +37,7 @@ pub trait Scalar:
     fn tan(self) -> Self::TanOutput;
     fn sin(self) -> Self::SinOutput;
     fn cos(self) -> Self::CosOutput;
+    fn is_non_zero(&self) -> bool;
 }
 
 pub trait MulAdd<U, V> {

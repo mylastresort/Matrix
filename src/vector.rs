@@ -3,7 +3,7 @@ use std::{
     ops::{Add, AddAssign, Index, Mul, MulAssign, Sub, SubAssign},
 };
 
-use crate::scalar::{Lerp, MulAdd, Scalar, Sqrt};
+use crate::scalar::{MulAdd, Scalar, Sqrt};
 
 #[derive(Clone, Default)]
 pub struct Vector<K> {
@@ -168,24 +168,6 @@ pub fn linear_combination<K: Scalar>(
         sum
     } else {
         V!()
-    }
-}
-
-impl<K: Scalar + MulAdd<f32, K>> Lerp for Vector<K> {
-    fn lerp(u: Self, v: Self, t: f32) -> Self {
-        match t {
-            0. => u,
-            1. => v,
-            p => {
-                let mut vec = Vec::with_capacity(u.size());
-
-                for i in 0..u.size() {
-                    vec.push((v[i] - u[i]).mul_add(&p, &u[i]))
-                }
-
-                V!(vec)
-            }
-        }
     }
 }
 

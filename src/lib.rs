@@ -3,6 +3,7 @@ pub mod f32;
 pub mod f64;
 pub mod matrix;
 pub mod scalar;
+pub mod utils;
 pub mod vec2;
 pub mod vec3;
 pub mod vector;

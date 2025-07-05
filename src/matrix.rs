@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::{
-    scalar::{Lerp, MulAdd, Scalar},
+    scalar::{MulAdd, Scalar},
     vector::{Dot, Vector},
     V,
 };
@@ -252,28 +252,6 @@ impl<K: Scalar> Mul<&Matrix<K>> for &Matrix<K> {
     }
 }
 
-impl<K: Scalar + MulAdd<f32, K>> Lerp for Matrix<K> {
-    fn lerp(u: Self, v: Self, t: f32) -> Self {
-        match t {
-            0. => u,
-            1. => v,
-            p => {
-                let mut vec = Vec::with_capacity(u._d.len());
-
-                for i in 0..u._d.len() {
-                    vec.push((v._d[i] - u._d[i]).mul_add(&p, &u._d[i]))
-                }
-
-                Matrix {
-                    _d: vec,
-                    cols: u.cols,
-                    rows: u.rows,
-                }
-            }
-        }
-    }
-}
-
 impl<K: Scalar> Matrix<K> {
     pub fn shape(&self) -> (usize, usize) {
         (self.rows, self.cols)
@@ -325,25 +303,25 @@ impl<K: Scalar> Matrix<K> {
         let mut col: usize = 0;
 
         for r in 0..self.rows {
-            let mut row = None;
+            let mut p = None;
 
             for j in col..self.cols {
                 for i in r..self.rows {
-                    if self[i][j] != K::default() {
-                        row = Some((i, j));
+                    if self[i][j].is_non_zero() {
+                        p = Some((i, j));
                         break;
                     }
                 }
 
-                if row.is_some() {
+                if p.is_some() {
                     break;
                 }
             }
 
-            if row.is_none() {
+            if p.is_none() {
                 break;
             }
-            let cur = row.unwrap();
+            let cur = p.unwrap();
             col = cur.1;
             if r != cur.0 {
                 for c in col..self.cols {
@@ -353,26 +331,26 @@ impl<K: Scalar> Matrix<K> {
                 }
             }
 
-            let p = self[r][col];
+            let v = self[r][col];
+
+            self[r][col] = K::one();
+            for i in col + 1..self.cols {
+                self[r][i] /= v;
+            }
+
             for i in 0..self.rows {
                 if i == r {
                     continue;
                 }
                 let cur = self[i][col];
-                if cur == K::default() {
-                    continue;
-                }
-
-                let a = -cur / p;
-                for j in col..self.cols {
+                self[i][col] = K::default();
+                for j in col + 1..self.cols {
                     let x = self[r][j];
-                    self[i][j] += x * a;
+                    self[i][j] -= x * cur;
                 }
             }
 
-            for i in col..self.cols {
-                self[r][i] *= p.inv();
-            }
+            col += 1;
         }
 
         self
@@ -426,6 +404,10 @@ impl<K: Scalar> Matrix<K> {
     }
 
     pub fn inverse(&self) -> Result<Matrix<K>, &'static str> {
+        assert!(self.is_square(), "matrix must be squared");
+
+        assert_ne!(self.determinant(), K::default(), "matrix must be singular");
+
         let mut aug_m = Matrix {
             _d: vec![K::default(); self.rows * self.cols * 2],
             cols: self.cols * 2,
@@ -463,7 +445,7 @@ impl<K: Scalar> Matrix<K> {
         let mut cur = 0;
         for row in mat._d.chunks(self.cols) {
             for (j, v) in row.iter().enumerate().skip(cur) {
-                if *v != K::default() {
+                if v.is_non_zero() {
                     cur = j + 1;
                     rank += 1;
                     break;

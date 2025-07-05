@@ -9,14 +9,15 @@ use std::{
 use crate::{
     matrix::Transpose,
     scalar::{Lerp, MulAdd, Scalar, Sqrt},
+    utils::EPSILON,
     vector::Angle,
     Dot, Matrix, Vector, V,
 };
 
 #[derive(Copy, Clone, Default, PartialEq, PartialOrd)]
 pub struct Complex {
-    pub x: f32,
-    pub y: f32,
+    pub x: f64,
+    pub y: f64,
 }
 
 pub trait Conj {
@@ -32,18 +33,18 @@ macro_rules! C {
 
 impl Debug for Complex {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({:.2} + {:.2}i)", self.x, self.y)
+        write!(f, "({} + {}i)", self.x, self.y)
     }
 }
 
 impl Display for Complex {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "({:.2} + {:.2}i)", self.x, self.y)
+        write!(f, "({} + {}i)", self.x, self.y)
     }
 }
 
-impl From<[f32; 2]> for Complex {
-    fn from(value: [f32; 2]) -> Self {
+impl From<[f64; 2]> for Complex {
+    fn from(value: [f64; 2]) -> Self {
         Complex {
             x: value[0],
             y: value[1],
@@ -52,7 +53,7 @@ impl From<[f32; 2]> for Complex {
 }
 
 impl Scalar for Complex {
-    type AbsOutput = f32;
+    type AbsOutput = f64;
 
     fn abs(&self) -> Self::AbsOutput {
         (self.x.powi(2) + self.y.powi(2)).powf(0.5)
@@ -72,27 +73,31 @@ impl Scalar for Complex {
     type TanOutput = Complex;
     fn tan(self) -> Self::TanOutput {
         Complex {
-            x: f32::sin(2. * self.x)
-                / (f32::cos(2. * self.x) + f32::cosh(2. * self.y)),
-            y: f32::sinh(2. * self.y)
-                / (f32::cos(2. * self.x) + f32::cosh(2. * self.y)),
+            x: f64::sin(2. * self.x)
+                / (f64::cos(2. * self.x) + f64::cosh(2. * self.y)),
+            y: f64::sinh(2. * self.y)
+                / (f64::cos(2. * self.x) + f64::cosh(2. * self.y)),
         }
     }
 
     type SinOutput = Complex;
     fn sin(self) -> Self::SinOutput {
         Complex {
-            x: f32::sin(self.x) * f32::cosh(self.y),
-            y: f32::cos(self.x) * f32::sinh(self.y),
+            x: f64::sin(self.x) * f64::cosh(self.y),
+            y: f64::cos(self.x) * f64::sinh(self.y),
         }
     }
 
     type CosOutput = Complex;
     fn cos(self) -> Self::CosOutput {
         Complex {
-            x: f32::cos(self.x) * f32::cosh(self.y),
-            y: f32::sin(self.x) * f32::sinh(self.y),
+            x: f64::cos(self.x) * f64::cosh(self.y),
+            y: f64::sin(self.x) * f64::sinh(self.y),
         }
+    }
+
+    fn is_non_zero(&self) -> bool {
+        self.x.abs() > EPSILON || self.y.abs() > EPSILON
     }
 }
 
@@ -110,7 +115,7 @@ impl Lerp for Complex {
         match t {
             0. => u,
             1. => v,
-            p => u + (v - u) * p,
+            p => (v - u) * p as f64 + u,
         }
     }
 }
@@ -214,9 +219,9 @@ impl MulAdd<Complex, Complex> for Complex {
     }
 }
 
-impl Mul<f32> for Complex {
+impl Mul<f64> for Complex {
     type Output = Complex;
-    fn mul(self, rhs: f32) -> Self::Output {
+    fn mul(self, rhs: f64) -> Self::Output {
         Complex {
             x: self.x * rhs,
             y: self.y * rhs,
@@ -224,15 +229,15 @@ impl Mul<f32> for Complex {
     }
 }
 
-impl MulAssign<f32> for Complex {
-    fn mul_assign(&mut self, rhs: f32) {
+impl MulAssign<f64> for Complex {
+    fn mul_assign(&mut self, rhs: f64) {
         self.x *= rhs;
         self.y *= rhs;
     }
 }
 
-impl MulAdd<f32, Complex> for Complex {
-    fn mul_add(self, a: &f32, b: &Self) -> Self {
+impl MulAdd<f64, Complex> for Complex {
+    fn mul_add(self, a: &f64, b: &Self) -> Self {
         Complex {
             x: self.x.mul_add(*a, b.x),
             y: self.y.mul_add(*a, b.y),
@@ -354,8 +359,8 @@ impl MulAdd<Complex, Vector<Complex>> for Vector<Complex> {
     }
 }
 
-impl MulAdd<f32, Vector<Complex>> for Vector<Complex> {
-    fn mul_add(self, a: &f32, b: &Vector<Complex>) -> Self {
+impl MulAdd<f64, Vector<Complex>> for Vector<Complex> {
+    fn mul_add(self, a: &f64, b: &Vector<Complex>) -> Self {
         assert!(self.size() == b.size(), "vectors must be the same size");
 
         let mut vec = Vec::with_capacity(self.size());
@@ -369,7 +374,7 @@ impl MulAdd<f32, Vector<Complex>> for Vector<Complex> {
 }
 
 impl Angle for Vector<Complex> {
-    type Output = f32;
+    type Output = f64;
     fn angle_cos(u: &Vector<Complex>, v: &Vector<Complex>) -> Self::Output {
         u.dot(v).x / (u.norm() * v.norm())
     }
@@ -388,6 +393,46 @@ impl Transpose<Complex> for Matrix<Complex> {
             rows: self.cols,
             cols: self.rows,
             _d: vec,
+        }
+    }
+}
+
+impl Lerp for Vector<Complex> {
+    fn lerp(u: Self, v: Self, t: f32) -> Self {
+        match t {
+            0. => u,
+            1. => v,
+            p => {
+                let mut vec = Vec::with_capacity(u.size());
+
+                for i in 0..u.size() {
+                    vec.push((v[i] - u[i]).mul_add(&(p as f64), &u[i]))
+                }
+
+                V!(vec)
+            }
+        }
+    }
+}
+
+impl Lerp for Matrix<Complex> {
+    fn lerp(u: Self, v: Self, t: f32) -> Self {
+        match t {
+            0. => u,
+            1. => v,
+            p => {
+                let mut vec = Vec::with_capacity(u._d.len());
+
+                for i in 0..u._d.len() {
+                    vec.push((v._d[i] - u._d[i]).mul_add(&(p as f64), &u._d[i]))
+                }
+
+                Matrix {
+                    _d: vec,
+                    cols: u.cols,
+                    rows: u.rows,
+                }
+            }
         }
     }
 }
