@@ -38,3 +38,4 @@ Cargo.lock
 
 /target
 proj
+tests/.venv

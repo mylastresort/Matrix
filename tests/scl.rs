@@ -95,7 +95,7 @@ fn test_scl_complex() {
         let size = i;
         let mut v = vec![];
         for i in 0..size {
-            v.push(C!(i as f32, (i + 1) as f32));
+            v.push(C!(i as f64, (i + 1) as f64));
         }
         let mut a = V!(v);
         let b = a.clone();

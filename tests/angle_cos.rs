@@ -1,10 +1,4 @@
-use matrix::{angle_cos, Complex, Vector, C, V};
-
-macro_rules! approx_eq {
-    ($a: expr, $b: expr) => {
-        ($a - $b).abs() < 1e-6
-    };
-}
+use matrix::{angle_cos, approx_eq, Complex, Vector, C, V};
 
 #[test]
 fn test_angle_cos() {
