@@ -39,3 +39,9 @@ Cargo.lock
 /target
 proj
 tests/.venv
+
+# Coverage reports (keep the directory structure but ignore generated files)
+coverage/*.html
+coverage/*.info
+coverage/*.json
+coverage/*.xml

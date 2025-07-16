@@ -1,4 +1,4 @@
-name: Rust Tests (cargo test)
+name: Rust Tests and Coverage
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    name: Run cargo nextest
+    name: Run Tests and Coverage
     runs-on: ubuntu-latest
 
     steps:
@@ -20,6 +20,33 @@ jobs:
         with:
           toolchain: stable
           override: true
+          components: llvm-tools-preview
+
+      - name: Install cargo-tarpaulin
+        uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-tarpaulin
+          version: latest
 
       - name: Run tests
         run: cargo test
+
+      - name: Generate code coverage
+        run: ./scripts/coverage.sh
+
+      - name: Update README with coverage report
+        run: ./scripts/update_readme.sh
+
+      - name: Commit and push coverage updates
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add README.md
+
+          # Check if there are any changes to commit
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "coverage: report - $(date +'%Y-%m-%d %H:%M:%S')"
+            git push
+          fi

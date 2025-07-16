@@ -1,0 +1,38 @@
+[package]
+# Run cargo tarpaulin with this config using: cargo tarpaulin --config tarpaulin.toml
+
+# Output formats - you can specify multiple
+out = ["Html", "Lcov", "Json"]
+
+# Output directory for coverage reports
+output-dir = "coverage"
+
+# Coverage target (default is 0.0, meaning any coverage is acceptable)
+target-dir = "target"
+
+# Follow symbolic links
+follow-exec = true
+
+# Post-test hook to clean up
+post-test-hook = "echo 'Coverage analysis complete'"
+
+# Include all files in the src/ directory
+include-tests = false
+
+# Count lines in doc tests
+count-lines = true
+
+# Fail if coverage is below this percentage (optional)
+# fail-under = 80.0
+
+# Exclude files/directories from coverage
+# exclude = ["src/bin/*"]
+
+# Timeout for individual tests (in seconds)
+timeout = "120s"
+
+# Run with specific features enabled
+# features = ["feature1", "feature2"]
+
+# Run specific test targets
+# test-targets = ["lib", "bins", "tests"]

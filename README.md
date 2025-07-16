@@ -1,5 +1,9 @@
 # Matrix
 
+<p align="left">
+  <img src="https://img.shields.io/badge/coverage-57.78%25-orange" alt="Coverage">
+</p>
+
 A linear algebra library written in Rust with basic matrix and vector operations.
 
 ## Overview
