@@ -6,6 +6,10 @@ A linear algebra library written in Rust with basic matrix and vector operations
 
 This is a practical library that implements essential linear algebra operations for matrices and vectors. It provides the fundamental building blocks you need for mathematical computations: dot and cross products for vectors, matrix operations (multiplication, transpose, inverse, determinant, row echelon form, rank), and support for real numbers (`f32`, `f64`) and complex numbers. Perfect for applications requiring basic linear algebra without the overhead of larger mathematical libraries.
 
+## Documentation
+
+Full API documentation is available at: https://docs.rs/matrix-42/0.1.0/matrix/
+
 ## Notes
 
 This is a basic educational library implementing fundamental linear algebra operations. It's designed for learning purposes and simple mathematical computations rather than high-performance applications.
