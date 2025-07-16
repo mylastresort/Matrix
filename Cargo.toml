@@ -2,6 +2,8 @@
 name = "matrix-42"
 version = "0.1.0"
 edition = "2021"
+description = "A linear algebra library written in Rust with basic matrix and vector operations"
+license = "MIT"
 
 [lib]
 name = "matrix"
