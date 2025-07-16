@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 description = "A linear algebra library written in Rust with basic matrix and vector operations"
 license = "MIT"
+documentation = "https://docs.rs/matrix-42"
+repository = "https://github.com/mylastresort/Matrix"
 
 [lib]
 name = "matrix"
