@@ -14,6 +14,7 @@ This is a practical library that implements essential linear algebra operations 
 
 - [Overview](#overview)
 - [Documentation](#documentation)
+- [Resources](#resources)
 - [Notes](#notes)
 - [Features](#features)
   - [Core Data Structures](#core-data-structures)
@@ -34,13 +35,13 @@ Full API documentation is available at: https://docs.rs/matrix-42/0.1.0/matrix
 
 ## Resources
 
-| Type     | Title                                                                                                                                                                                                                                                 | Description                                                                                                               |
-| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Book     | [Coding the Matrix: Linear Algebra through Computer Science Applications](<docs/Philip%20N.%20Klein%20-%20Coding%20the%20Matrix_%20Linear%20Algebra%20through%20Computer%20Science%20Applications%20(2013,%20Newtonian%20Press)%20-%20libgen.li.pdf>) | Philip N. Klein's comprehensive textbook covering linear algebra concepts through practical computer science applications |
-| Tutorial | [OpenGL Perspective Projection Matrix](https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/opengl-perspective-projection-matrix.html)                                                             | Comprehensive guide to understanding projection matrices in 3D graphics                                                   |
-| Video    | [Khan Academy Linear Algebra Playlist](https://www.youtube.com/playlist?list=PLFD0EB975BA0CC1E0)                                                                                                                                                      | Complete linear algebra course covering fundamentals with exercices                                                       |
-| Video    | [Applications of Matrices](https://www.youtube.com/watch?v=rowWM-MijXU)                                                                                                                                                                               | Real-world applications and use cases for matrix operations                                                               |
-| Video    | [Vector Space Overview](https://www.youtube.com/watch?v=4csuTO7UTMo)                                                                                                                                                                                  | Linear algebra introduction tutorial                                                                                      |
+| Type     | Title                                                                                                                                                                                     | Description                                                                                                               |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Book     | [Coding the Matrix: Linear Algebra through Computer Science Applications](https://codingthematrix.com)                               | Philip N. Klein's comprehensive textbook covering linear algebra concepts through practical computer science applications |
+| Tutorial | [OpenGL Perspective Projection Matrix](https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/opengl-perspective-projection-matrix.html) | Comprehensive guide to understanding projection matrices in 3D graphics                                                   |
+| Video    | [Khan Academy Linear Algebra Playlist](https://www.youtube.com/playlist?list=PLFD0EB975BA0CC1E0)                                                                                          | Complete linear algebra course covering fundamentals with exercices                                                       |
+| Video    | [Applications of Matrices](https://www.youtube.com/watch?v=rowWM-MijXU)                                                                                                                   | Real-world applications and use cases for matrix operations                                                               |
+| Video    | [Vector Space Overview](https://www.youtube.com/watch?v=4csuTO7UTMo)                                                                                                                      | Linear algebra introduction tutorial                                                                                      |
 
 ## Notes
 
