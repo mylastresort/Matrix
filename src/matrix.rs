@@ -1,7 +1,9 @@
 use std::{
     f32::consts::PI,
     fmt::{Debug, Display},
-    ops::{Add, AddAssign, Index, IndexMut, Mul, MulAssign, Sub, SubAssign},
+    ops::{
+        Add, AddAssign, Div, Index, IndexMut, Mul, MulAssign, Sub, SubAssign,
+    },
 };
 
 use crate::{
@@ -17,6 +19,117 @@ pub struct Matrix<K> {
     pub cols: usize,
 }
 
+pub struct MatrixRowIter<'a, K> {
+    inner: std::slice::Chunks<'a, K>,
+}
+
+impl<'a, K> Iterator for MatrixRowIter<'a, K> {
+    type Item = &'a [K];
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next()
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.inner.size_hint()
+    }
+}
+
+impl<K> ExactSizeIterator for MatrixRowIter<'_, K> {
+    fn len(&self) -> usize {
+        self.inner.len()
+    }
+}
+
+impl<K: Scalar> MatrixRowIter<'_, K> {
+    pub fn sum(self) -> K {
+        self.flatten()
+            .copied()
+            .fold(K::default(), |acc, value| acc + value)
+    }
+
+    pub fn product(self) -> K {
+        self.flatten()
+            .copied()
+            .fold(K::one(), |acc, value| acc * value)
+    }
+}
+
+pub struct MatrixCol<'a, K> {
+    matrix: &'a Matrix<K>,
+    col: usize,
+    row: usize,
+}
+
+impl<'a, K> Iterator for MatrixCol<'a, K> {
+    type Item = &'a K;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.row >= self.matrix.rows {
+            return None;
+        }
+
+        let item = &self.matrix[self.row][self.col];
+        self.row += 1;
+        Some(item)
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let remaining = self.matrix.rows.saturating_sub(self.row);
+        (remaining, Some(remaining))
+    }
+}
+
+impl<K> ExactSizeIterator for MatrixCol<'_, K> {
+    fn len(&self) -> usize {
+        self.matrix.rows.saturating_sub(self.row)
+    }
+}
+
+impl<K: Scalar> MatrixCol<'_, K> {
+    pub fn sum(self) -> K {
+        self.copied().fold(K::default(), |acc, value| acc + value)
+    }
+
+    pub fn product(self) -> K {
+        self.copied().fold(K::one(), |acc, value| acc * value)
+    }
+}
+
+pub struct MatrixColIter<'a, K> {
+    matrix: &'a Matrix<K>,
+    col: usize,
+}
+
+impl<'a, K> Iterator for MatrixColIter<'a, K> {
+    type Item = MatrixCol<'a, K>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.col >= self.matrix.cols {
+            return None;
+        }
+
+        let column = MatrixCol {
+            matrix: self.matrix,
+            col: self.col,
+            row: 0,
+        };
+        self.col += 1;
+        Some(column)
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let remaining = self.matrix.cols.saturating_sub(self.col);
+        (remaining, Some(remaining))
+    }
+}
+
+impl<K> ExactSizeIterator for MatrixColIter<'_, K> {
+    fn len(&self) -> usize {
+        self.matrix.cols.saturating_sub(self.col)
+    }
+}
+
 pub trait Transpose<K> {
     fn transpose(&self) -> Matrix<K>;
 }
@@ -24,7 +137,7 @@ pub trait Transpose<K> {
 #[macro_export]
 macro_rules! M {
     ($values:expr) => {
-        Matrix::from($values)
+        $crate::Matrix::from($values)
     };
 }
 
@@ -180,6 +293,24 @@ impl<K: Scalar + MulAssign<U>, U: Scalar> MulAssign<&U> for Matrix<K> {
     }
 }
 
+impl<K: Scalar + Div<U, Output = K>, U: Scalar + Copy> Div<U> for Matrix<K> {
+    type Output = Matrix<K>;
+
+    fn div(self, rhs: U) -> Self::Output {
+        let mut vec = Vec::with_capacity(self._d.len());
+
+        for i in 0..self._d.len() {
+            vec.push(self._d[i] / rhs);
+        }
+
+        Matrix {
+            _d: vec,
+            cols: self.cols,
+            rows: self.rows,
+        }
+    }
+}
+
 impl<K: Scalar + Mul<U, Output = K> + MulAdd<U, K>, U: Scalar>
     MulAdd<U, Matrix<K>> for Matrix<K>
 {
@@ -253,6 +384,19 @@ impl<K: Scalar> Mul<&Matrix<K>> for &Matrix<K> {
 }
 
 impl<K: Scalar> Matrix<K> {
+    pub fn row_iter(&self) -> MatrixRowIter<'_, K> {
+        MatrixRowIter {
+            inner: self._d.chunks(self.cols),
+        }
+    }
+
+    pub fn col_iter(&self) -> MatrixColIter<'_, K> {
+        MatrixColIter {
+            matrix: self,
+            col: 0,
+        }
+    }
+
     pub fn shape(&self) -> (usize, usize) {
         (self.rows, self.cols)
     }

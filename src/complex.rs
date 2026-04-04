@@ -70,6 +70,17 @@ impl Scalar for Complex {
         C!(1., 0.)
     }
 
+    fn from_usize(value: usize) -> Self {
+        Complex {
+            x: value as f64,
+            y: 0.,
+        }
+    }
+
+    fn from_float(value: f64) -> Self {
+        Complex { x: value, y: 0. }
+    }
+
     type TanOutput = Complex;
     fn tan(self) -> Self::TanOutput {
         Complex {

@@ -25,6 +25,14 @@ impl Scalar for f32 {
         1.
     }
 
+    fn from_usize(value: usize) -> Self {
+        value as f32
+    }
+
+    fn from_float(value: f64) -> Self {
+        value as f32
+    }
+
     fn inv(self) -> Self {
         1. / self
     }

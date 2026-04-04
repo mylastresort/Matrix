@@ -8,6 +8,8 @@ pub mod vec2;
 pub mod vec3;
 pub mod vector;
 
+pub mod statistics;
+
 pub use complex::Complex;
 pub use matrix::{projection, Matrix, Transpose};
 pub use scalar::{lerp, Scalar};

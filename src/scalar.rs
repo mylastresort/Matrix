@@ -33,6 +33,8 @@ pub trait Scalar:
 
     fn abs(&self) -> Self::AbsOutput;
     fn one() -> Self;
+    fn from_usize(value: usize) -> Self;
+    fn from_float(value: f64) -> Self;
     fn inv(self) -> Self;
     fn tan(self) -> Self::TanOutput;
     fn sin(self) -> Self::SinOutput;

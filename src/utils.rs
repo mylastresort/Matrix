@@ -8,5 +8,5 @@ macro_rules! approx_eq {
 
     ($a: expr, $b: expr, $c: expr) => {
         ($a - $b).abs() < $c
-    }
+    };
 }
