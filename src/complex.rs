@@ -112,6 +112,24 @@ impl Scalar for Complex {
     }
 }
 
+impl PartialEq<Matrix<Complex>> for Matrix<Complex> {
+    fn eq(&self, other: &Matrix<Complex>) -> bool {
+        if self.rows != other.rows || self.cols != other.cols {
+            return false;
+        }
+
+        for i in 0..self._d.len() {
+            if (self._d[i].x - other._d[i].x).abs() > EPSILON
+                || (self._d[i].y - other._d[i].y).abs() > EPSILON
+            {
+                return false;
+            }
+        }
+
+        true
+    }
+}
+
 impl Sqrt for Complex {
     fn sqrt(self: Self) -> Self {
         Complex {

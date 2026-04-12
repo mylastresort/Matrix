@@ -55,6 +55,22 @@ impl Scalar for f32 {
     }
 }
 
+impl PartialEq for Matrix<f32> {
+    fn eq(&self, other: &Self) -> bool {
+        if self.rows != other.rows || self.cols != other.cols {
+            return false;
+        }
+
+        for i in 0..self._d.len() {
+            if (self._d[i] - other._d[i]).abs() > EPSILON as f32 {
+                return false;
+            }
+        }
+
+        true
+    }
+}
+
 impl MulAdd<f32, f32> for f32 {
     fn mul_add(self, a: &f32, b: &f32) -> Self {
         self.mul_add(*a, *b)

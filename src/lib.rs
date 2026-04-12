@@ -8,6 +8,7 @@ pub mod vec2;
 pub mod vec3;
 pub mod vector;
 
+pub mod decompositions;
 pub mod statistics;
 
 pub use complex::Complex;

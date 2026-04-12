@@ -225,6 +225,29 @@ impl<K: Scalar> Add for Matrix<K> {
     }
 }
 
+impl<K: Scalar> Add<&Matrix<K>> for Matrix<K> {
+    type Output = Self;
+
+    fn add(self, other: &Matrix<K>) -> Self::Output {
+        assert_eq!(
+            self.shape(),
+            other.shape(),
+            "matrices must be the same size"
+        );
+
+        let mut vec = Vec::with_capacity(self.rows * self.cols);
+        for i in 0..self._d.len() {
+            vec.push(self._d[i] + other._d[i]);
+        }
+
+        Matrix {
+            _d: vec,
+            cols: self.cols,
+            rows: self.rows,
+        }
+    }
+}
+
 impl<K: Scalar> AddAssign<&Matrix<K>> for Matrix<K> {
     fn add_assign(&mut self, rhs: &Matrix<K>) {
         assert_eq!(self.shape(), rhs.shape(), "matrices must be the same size");

@@ -10,3 +10,18 @@ macro_rules! approx_eq {
         ($a - $b).abs() < $c
     };
 }
+
+#[macro_export]
+macro_rules! rule {
+    ($cond:expr) => {
+        if !$cond {
+            return false;
+        }
+    };
+
+    ($cond:expr, $val:expr) => {
+        if !$cond {
+            return $val;
+        }
+    };
+}
